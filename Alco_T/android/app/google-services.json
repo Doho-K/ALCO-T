@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "354122565777",
+    "project_id": "alcot-bf504",
+    "storage_bucket": "alcot-bf504.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:354122565777:android:b57c1bc746eb58c2475730",
+        "android_client_info": {
+          "package_name": "com.android.application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrVgNgypOV5FSmeZII9wBRPJPZosoGp6g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
