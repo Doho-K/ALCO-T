@@ -1,4 +1,5 @@
 import 'package:alco_t_dev/DataCollector.dart';
+import 'package:alco_t_dev/landingPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -72,9 +73,16 @@ class _infoPageState extends State<infoPage>{
                 _heightController.clear();
                 _drinkController.clear();
               },
-              child: Text('저장 후 테스트로'),
-
+              child: Text('저장'),
             ),
+            SizedBox(height: 20.0),
+            ElevatedButton(onPressed: (){
+              Get.to(landingPage());//이 안에 이동할 페이지 클래스를 넣어주면 됨
+            }, child: Text('스와이핑 테스크 페이지로 이동')),
+            SizedBox(height: 20.0),
+            ElevatedButton(onPressed: (){
+              Get.to(landingPage());//이 안에 이동할 페이지 클래스를 넣어주면 됨
+            }, child: Text('타이핑 테스크 페이지로 이동')),
           ],
         ),
       ),
