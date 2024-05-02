@@ -135,18 +135,11 @@ class CustomKeyboard extends StatelessWidget {
             children: row.map((key) {
               return Expanded(
                 child: GestureDetector(
-                  onTap: () {
-                    // 사용자가 버튼을 누를 때 해당 버튼의 화면 좌표를 가져옵니다.
-                    RenderBox renderBox = context.findRenderObject() as RenderBox;
-                    Offset offset = renderBox.localToGlobal(Offset.zero);
-                    double screenWidth = MediaQuery.of(context).size.width;
-                    double screenHeight = MediaQuery.of(context).size.height;
-                    double buttonWidth = screenWidth / row.length;
-                    double buttonHeight = screenHeight / keyboardLayout.length;
-                    int rowIdx = keyboardLayout.indexWhere((r) => r.contains(key));
-                    int colIdx = row.indexOf(key);
-                    double xPos = offset.dx + buttonWidth * colIdx + buttonWidth / 2;
-                    double yPos = offset.dy + buttonHeight * rowIdx + buttonHeight / 2;
+                  onTapDown: (TapDownDetails details) {
+                    // 사용자가 터치한 부분의 자세한 좌표를 가져옵니다.
+                    Offset position = details.localPosition;
+                    double xPos = position.dx;
+                    double yPos = position.dy;
                     // 버튼의 좌표를 출력합니다.
                     print('Button "$key" tapped at ($xPos, $yPos)');
                     print('time : ${DateTime.now().millisecondsSinceEpoch}' '(ms)');
