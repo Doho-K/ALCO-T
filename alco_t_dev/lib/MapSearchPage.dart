@@ -17,13 +17,13 @@ class MapSearchPageState extends State<MapSearchPage> {
     zoom: 14,
   );
 
-  // 커스텀 키보드의 버튼과 좌표 설정
+  // 커스텀 키보드 버튼
   final List<List<String>> keyboardLayout = [
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
     ['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ'],
     ['ㅁ', 'ㄴ', 'ㅇ', 'ㄹ', 'ㅎ', 'ㅗ', 'ㅓ', 'ㅏ', 'ㅣ'],
     ['↑', 'ㅋ', 'ㅌ', 'ㅊ', 'ㅍ', 'ㅠ', 'ㅜ', 'ㅡ', '←'],
-    ['.', 'space', '.', 'enter'],
+    ['.', 'space', '.'],
   ];
 
   // 키보드가 떠있는지 여부를 나타내는 변수
@@ -56,7 +56,6 @@ class MapSearchPageState extends State<MapSearchPage> {
                       ),
                       onChanged: (value) {
                         // 검색어가 변경될 때마다 실행되는 콜백
-                        // 여기에서 검색어를 처리하거나 검색 결과를 업데이트할 수 있습니다.
                       },
                     ),
                   ),
@@ -65,7 +64,9 @@ class MapSearchPageState extends State<MapSearchPage> {
               IconButton(
                 onPressed: () {
                   // 검색 버튼을 눌렀을 때 실행되는 콜백
-                  // 여기에서 검색어를 사용하여 검색을 실행하거나, 검색 결과를 표시할 수 있습니다.
+                  String searchText = _searchController.text;
+                  showConfirmationPopup(context, searchText);
+                  _searchController.text = '';
                 },
                 icon: Icon(Icons.search),
               ),
@@ -80,20 +81,33 @@ class MapSearchPageState extends State<MapSearchPage> {
               },
             ),
           ),
-          // 커스텀 키보드가 표시되는지 여부에 따라 키보드를 표시하거나 숨깁니다.
           if (_isKeyboardVisible)
             CustomKeyboard(
               keyboardLayout: keyboardLayout,
               onKeyPressed: (String key) {
-                // ↑ 버튼을 누르면 ㅃ ㅉ ㄸ ㄲ ㅆ 가 ㅂㅈㄷㄱㅅ로 바뀌도록 구현
                 if (key == '↑') {
                   setState(() {
-                    keyboardLayout[1] = ['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ'];
+                    if (keyboardLayout[1][0] == 'ㅂ') {
+                      keyboardLayout[1] = ['ㅃ', 'ㅉ', 'ㄸ', 'ㄲ', 'ㅆ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ'];
+                    } else {
+                      keyboardLayout[1] = ['ㅂ', 'ㅈ', 'ㄷ', 'ㄱ', 'ㅅ', 'ㅛ', 'ㅕ', 'ㅑ', 'ㅐ', 'ㅔ'];
+                    }
                   });
-                } else if (key == 'enter') {
-                  // enter 키를 눌렀을 때 검색 기능 실행
-                  print('검색: ${_searchController.text}');
-                  // 여기에 검색 기능을 구현하면 됩니다.
+                } else if (key == '←') {
+                  setState(() {
+                    String currentText = _searchController.text;
+                    if (currentText.isNotEmpty) {
+                      _searchController.text = currentText.substring(0, currentText.length - 1);
+                    }
+                  });
+                } else if (key == 'space'){
+                  setState(() {
+                    _searchController.text += ' ';
+                  });
+                } else {
+                  setState(() {
+                    _searchController.text += key;
+                  });
                 }
               },
             ),
@@ -161,4 +175,36 @@ class CustomKeyboard extends StatelessWidget {
   }
 }
 
+void showConfirmationPopup(BuildContext context, String searchText) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('확인'),
+        content: Text('$searchText 가 맞습니까?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              search(searchText);
+              Navigator.of(context).pop();
+            },
+            child: Text('확인'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('취소'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
+
+
+void search(String searchText) {
+  print('실제 검색을 실행합니다: $searchText');
+  // 여기에 실제 검색 기능을 구현할 수 있습니다.
+}
