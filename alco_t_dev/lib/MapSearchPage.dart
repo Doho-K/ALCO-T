@@ -136,11 +136,10 @@ class CustomKeyboard extends StatelessWidget {
               return Expanded(
                 child: GestureDetector(
                   onTapDown: (TapDownDetails details) {
-                    // 사용자가 터치한 부분의 자세한 좌표를 가져옵니다.
                     Offset position = details.localPosition;
                     double xPos = position.dx;
                     double yPos = position.dy;
-                    // 버튼의 좌표를 출력합니다.
+                    // firebase로 전송할 데이터
                     print('Button "$key" tapped at ($xPos, $yPos)');
                     print('time : ${DateTime.now().millisecondsSinceEpoch}' '(ms)');
                     // onKeyPressed 콜백 함수에 버튼의 값을 전달합니다.
