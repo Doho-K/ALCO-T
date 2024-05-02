@@ -29,9 +29,6 @@ class MapSearchPageState extends State<MapSearchPage> {
   // 키보드가 떠있는지 여부를 나타내는 변수
   bool _isKeyboardVisible = false;
 
-  // 마커 세트
-  Set<Marker> _markers = {};
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,7 +66,6 @@ class MapSearchPageState extends State<MapSearchPage> {
                 onPressed: () {
                   // 검색 버튼을 눌렀을 때 실행되는 콜백
                   // 여기에서 검색어를 사용하여 검색을 실행하거나, 검색 결과를 표시할 수 있습니다.
-                  _searchOnMap();
                 },
                 icon: Icon(Icons.search),
               ),
@@ -82,7 +78,6 @@ class MapSearchPageState extends State<MapSearchPage> {
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
               },
-              markers: _markers,
             ),
           ),
           // 커스텀 키보드가 표시되는지 여부에 따라 키보드를 표시하거나 숨깁니다.
@@ -97,54 +92,14 @@ class MapSearchPageState extends State<MapSearchPage> {
                   });
                 } else if (key == 'enter') {
                   // enter 키를 눌렀을 때 검색 기능 실행
-                  _searchOnMap();
+                  print('검색: ${_searchController.text}');
+                  // 여기에 검색 기능을 구현하면 됩니다.
                 }
               },
             ),
         ],
       ),
     );
-  }
-
-  // 구글맵에서 검색 실행
-  void _searchOnMap() async {
-    final String searchText = _searchController.text;
-    if (searchText.isEmpty) return;
-
-    try {
-      // 검색어를 지도의 중심으로 설정하여 이동
-      final GoogleMapController controller = await _controller.future;
-      final GoogleMapsPlaces _places = GoogleMapsPlaces(apiKey: 'YOUR_API_KEY');
-      PlacesSearchResponse results = await _places.searchByText(searchText);
-      if (results.isOkay) {
-        final PlacesSearchResult firstPlace = results.results[0];
-        controller.animateCamera(
-          CameraUpdate.newLatLngZoom(
-            LatLng(firstPlace.geometry!.location.lat, firstPlace.geometry!.location.lng),
-            14.0,
-          ),
-        );
-
-        // 마커 추가
-        _markers.add(
-          Marker(
-            markerId: MarkerId(firstPlace.name!),
-            position: LatLng(firstPlace.geometry!.location.lat, firstPlace.geometry!.location.lng),
-            infoWindow: InfoWindow(
-              title: firstPlace.name,
-              snippet: firstPlace.formattedAddress,
-            ),
-          ),
-        );
-
-        // 지도에 마커 업데이트
-        setState(() {
-          _markers = _markers;
-        });
-      }
-    } catch (e) {
-      print('검색 오류: $e');
-    }
   }
 }
 
@@ -205,4 +160,5 @@ class CustomKeyboard extends StatelessWidget {
     );
   }
 }
+
 
