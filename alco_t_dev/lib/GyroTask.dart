@@ -41,6 +41,7 @@ class _GyroTaskState extends State<GyroTask> {
             Text('Gyro'),
             Text(_gyroscopeEvent?.x.toStringAsFixed(1) ?? '?'),
             Text(_gyroscopeEvent?.y.toStringAsFixed(1) ?? '?'),
+            MovingBall(initialX: 0.0, initialY: 0.0),
 
           ],
         ),
@@ -73,6 +74,7 @@ class _GyroTaskState extends State<GyroTask> {
                 _accelerometerLastInterval = interval.inMilliseconds;
               }
             }
+
           });
           _accelerometerUpdateTime = now;
         },
@@ -122,3 +124,91 @@ class _GyroTaskState extends State<GyroTask> {
   }
 }
 
+class MovingBall extends StatefulWidget {
+  final double initialX;
+  final double initialY;
+
+  MovingBall({required this.initialX, required this.initialY});
+  @override
+  _MovingBallState createState() => _MovingBallState();
+}
+
+class _MovingBallState extends State<MovingBall> with TickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _animation;
+  // 공의 현재 위치
+  double _x = 0.0;
+  double _y = 0.0;
+
+  // 공의 이동 속도
+  double _speed = 2.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 1),
+    );
+
+    // 좌표에 따라 움직이는 애니메이션 정의
+    _animation = Tween<Offset>(
+      begin: Offset(_x, _y),
+      end: Offset(_x , _y ),
+    ).animate(_controller)
+      ..addListener(() {
+        setState(() {
+          _x = _animation.value.dx;
+          _y = _animation.value.dy;
+        });
+      });
+
+    // 애니메이션 시작
+    _controller.repeat(reverse: true);
+
+    Timer.periodic(Duration(microseconds: 100), (timer) {
+      setState(() {
+        _x = ;
+        _y = ;
+      });
+    });
+  }
+  void setBallPosition(double x, double y) {
+    setState(() {
+      _x = x;
+      _y = y;
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: CustomPaint(
+        painter: BallPainter(_x, _y),
+      ),
+    );
+  }
+}
+
+class BallPainter extends CustomPainter {
+  final double x;
+  final double y;
+
+  BallPainter(this.x, this.y);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()..color = Colors.blue;
+    canvas.drawCircle(Offset(x, y), 20, paint);
+  }
+
+  @override
+  bool shouldRepaint(BallPainter oldDelegate) => true;
+}
