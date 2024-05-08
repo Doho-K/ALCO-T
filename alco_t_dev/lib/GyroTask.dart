@@ -1,6 +1,9 @@
+import 'package:alco_t_dev/DataCollector.dart';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:async';
+import 'package:get/get.dart';
+import 'dart:math';
 
 class GyroTask extends StatefulWidget {
   @override
@@ -20,10 +23,12 @@ class _GyroTaskState extends State<GyroTask> {
   int? _gyroscopeLastInterval;
   final _streamSubscriptions = <StreamSubscription<dynamic>>[];
   Duration sensorInterval = SensorInterval.normalInterval;
+  final myController = Get.put(DataCollector());
+  Timer? _timer;
+  int _count = 3;
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Gyro Task'),
@@ -32,15 +37,17 @@ class _GyroTaskState extends State<GyroTask> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
+            Text('$_count',style: TextStyle(fontSize: 48),),
+            /*Text(
               'ACCELEROMETER',
               style: TextStyle(fontSize: 20),
             ),
-            Text(_accelerometerEvent?.x.toStringAsFixed(1) ?? '?'),
+            Text(myController.gyroX.value.toString() ?? '?'),
             Text(_accelerometerEvent?.y.toStringAsFixed(1) ?? '?'),
             Text('Gyro'),
             Text(_gyroscopeEvent?.x.toStringAsFixed(1) ?? '?'),
-            Text(_gyroscopeEvent?.y.toStringAsFixed(1) ?? '?'),
+            Text(_gyroscopeEvent?.y.toStringAsFixed(1) ?? '?'),*/
+            //Countdown(),
             MovingBall(initialX: 0.0, initialY: 0.0),
 
           ],
@@ -62,6 +69,7 @@ class _GyroTaskState extends State<GyroTask> {
   @override
   void initState() {
     super.initState();
+    _startCountdown();
     _streamSubscriptions.add(
       accelerometerEventStream(samplingPeriod: sensorInterval).listen(
             (AccelerometerEvent event) {
@@ -74,7 +82,8 @@ class _GyroTaskState extends State<GyroTask> {
                 _accelerometerLastInterval = interval.inMilliseconds;
               }
             }
-
+            myController.gyroX.value = _accelerometerEvent!.x.toDouble();
+            myController.gyroY.value = _accelerometerEvent!.y.toDouble();
           });
           _accelerometerUpdateTime = now;
         },
@@ -106,6 +115,7 @@ class _GyroTaskState extends State<GyroTask> {
             }
           });
           _gyroscopeUpdateTime = now;
+
         },
         onError: (e) {
           showDialog(
@@ -122,11 +132,27 @@ class _GyroTaskState extends State<GyroTask> {
       ),
     );
   }
+  void _startCountdown() {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_count > 0) {
+        setState(() {
+          _count--;
+        });
+      }
+      else {
+        timer.cancel();
+        myController.initY.value = _accelerometerEvent!.y.toDouble()-2;
+        myController.taskStart.value = true;
+
+      }
+    });
+  }
 }
 
 class MovingBall extends StatefulWidget {
   final double initialX;
   final double initialY;
+
 
   MovingBall({required this.initialX, required this.initialY});
   @override
@@ -136,44 +162,78 @@ class MovingBall extends StatefulWidget {
 class _MovingBallState extends State<MovingBall> with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _animation;
+  final myController = Get.put(DataCollector());
+  Random random = Random();
+
+  int missionIndex = 0;
   // 공의 현재 위치
   double _x = 0.0;
-  double _y = 0.0;
-
-  // 공의 이동 속도
-  double _speed = 2.0;
+  double _y = 0;
+  int missionX = 0;
+  int missionY = 0;
+  Stopwatch stopwatch = Stopwatch();
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(seconds: 1),
-    );
+    missionIndex = random.nextInt(4);
+    if(missionIndex==0){
+      missionX = -140;
+      missionY = 200;
+    }
+    else if(missionIndex==1){
+      missionX = 140;
+      missionY = 200;
+    }
+    else if(missionIndex==2){
+      missionX = -140;
+      missionY = -200;
+    }
+    else{
+      missionX = 140;
+      missionY = -200;
+    }
 
-    // 좌표에 따라 움직이는 애니메이션 정의
-    _animation = Tween<Offset>(
-      begin: Offset(_x, _y),
-      end: Offset(_x , _y ),
-    ).animate(_controller)
-      ..addListener(() {
-        setState(() {
-          _x = _animation.value.dx;
-          _y = _animation.value.dy;
-        });
-      });
-
-    // 애니메이션 시작
-    _controller.repeat(reverse: true);
-
-    Timer.periodic(Duration(microseconds: 100), (timer) {
+    Timer.periodic(Duration(milliseconds: 50), (timer) {
       setState(() {
-        _x = ;
-        _y = ;
+        if(myController.taskStart.value == true){
+          if(stopwatch.isRunning == false){
+            stopwatch.start();
+          }
+          if(_x<=200&&_x>=-200){
+            _x = _x-myController.gyroX.value.toDouble();
+          }
+          else{
+            if(_x>0){
+              _x = 200;
+            }
+            else{
+              _x = -200;
+            }
+          }
+          if(_y<=300&&_y>=-400){
+            _y = _y+myController.gyroY.value.toDouble()-myController.initY.value.toDouble();
+          }
+          else{
+            if(_y>0){
+              _y = 300;
+            }
+            else{
+              _y = -400;
+            }
+          }
+          if(distanceBetweenPoints(_x, _y, missionX.toDouble(), missionY.toDouble())<3){
+            myController.taskStart.value = false;
+            myController.gyroTime.value = stopwatch.elapsedMilliseconds.toDouble();
+            stopwatch.stop();
+          }
+        }
+
       });
     });
   }
-  void setBallPosition(double x, double y) {
+
+  /*void setBallPosition(double x, double y) {
     setState(() {
       _x = x;
       _y = y;
@@ -184,14 +244,28 @@ class _MovingBallState extends State<MovingBall> with TickerProviderStateMixin {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }*/
+  double distanceBetweenPoints(double x1, double y1, double x2, double y2) {
+    double dx = x2 - x1;
+    double dy = y2 - y1;
+    return sqrt(dx * dx + dy * dy);
   }
-
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      child: CustomPaint(
-        painter: BallPainter(_x, _y),
+      child: Column(
+        children: [
+          Text(myController.initY.value.toString()),
+          Text(myController.gyroY.value.toString()),
+          Text(myController.gyroTime.value.toString()),
+          CustomPaint(
+            painter: BallPainter(_x, _y),
+          ),
+          CustomPaint(
+            painter: BallPainter2(missionX.toDouble(), missionY.toDouble()),
+          )
+        ],
       ),
     );
   }
@@ -211,4 +285,53 @@ class BallPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(BallPainter oldDelegate) => true;
+}
+
+class BallPainter2 extends CustomPainter {
+  final double x;
+  final double y;
+
+  BallPainter2(this.x, this.y);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()..color = Colors.red;
+    canvas.drawCircle(Offset(x, y), 20, paint);
+  }
+
+  @override
+  bool shouldRepaint(BallPainter2 oldDelegate) => true;
+}
+
+class Countdown extends StatefulWidget {
+  @override
+  _CountdownState createState() => _CountdownState();
+}
+
+class _CountdownState extends State<Countdown> {
+  int _count = 3;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 1초마다 _count를 1씩 감소시키는 타이머 설정
+    Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_count > 0) {
+        setState(() {
+          _count--;
+        });
+      } else {
+        timer.cancel(); // 타이머 취소
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '$_count',
+      style: TextStyle(fontSize: 48),
+    );
+  }
 }
