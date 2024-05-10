@@ -83,9 +83,9 @@ class _infoPageState extends State<infoPage>{
               Get.to(PatternSwipingPage(userID: "", sessionID: 1));//이 안에 이동할 페이지 클래스를 넣어주면 됨
             }, child: Text('스와이핑 테스크 페이지로 이동')),
             SizedBox(height: 20.0),
-            //ElevatedButton(onPressed: (){
-              //Get.to(MapSearchPage());//이 안에 이동할 페이지 클래스를 넣어주면 됨
-            //}, child: Text('타이핑 테스크 페이지로 이동')),
+            ElevatedButton(onPressed: (){
+              Get.to(MapSearchPage());//이 안에 이동할 페이지 클래스를 넣어주면 됨
+            }, child: Text('타이핑 테스크 페이지로 이동')),
             SizedBox(height: 20.0),
             ElevatedButton(onPressed: (){
               Get.to(GyroTask());//이 안에 이동할 페이지 클래스를 넣어주면 됨
