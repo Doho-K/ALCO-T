@@ -139,9 +139,11 @@ class CustomKeyboard extends StatelessWidget {
                     Offset position = details.localPosition;
                     double xPos = position.dx;
                     double yPos = position.dy;
+                    DateTime now = DateTime.now();
+                    int time = now.millisecondsSinceEpoch;
                     // firebase로 전송할 데이터
                     print('Button "$key" tapped at ($xPos, $yPos)');
-                    print('time : ${DateTime.now().millisecondsSinceEpoch}' '(ms)');
+                    print('time : "$time" '(ms)');
                     // onKeyPressed 콜백 함수에 버튼의 값을 전달합니다.
                     onKeyPressed(key);
                   },
