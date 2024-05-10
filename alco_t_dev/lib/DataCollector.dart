@@ -4,6 +4,11 @@ import 'package:get/get.dart';
 class DataCollector extends GetxController{
 
   dataModel? data;
+  RxDouble gyroX = 0.0.obs;
+  RxDouble gyroY = 0.0.obs;
+  RxBool taskStart = false.obs;
+  RxDouble initY = 0.0.obs;
+  RxDouble gyroTime = 0.0.obs;
 
   void saveData() async {
     try{

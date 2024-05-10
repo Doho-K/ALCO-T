@@ -1,4 +1,6 @@
 import 'package:alco_t_dev/DataCollector.dart';
+import 'package:alco_t_dev/GyroTask.dart';
+import 'package:alco_t_dev/PatternSwipingPage.dart';
 import 'package:alco_t_dev/landingPage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -84,6 +86,11 @@ class _infoPageState extends State<infoPage>{
             ElevatedButton(onPressed: (){
               Get.to(MapSearchPage());//이 안에 이동할 페이지 클래스를 넣어주면 됨
             }, child: Text('타이핑 테스크 페이지로 이동')),
+            SizedBox(height: 20.0),
+            ElevatedButton(onPressed: (){
+              Get.to(GyroTask());//이 안에 이동할 페이지 클래스를 넣어주면 됨
+            }, child: Text('자이로 테스크 페이지로 이동')),
+
           ],
         ),
       ),
