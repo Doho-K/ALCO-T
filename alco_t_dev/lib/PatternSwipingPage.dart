@@ -424,11 +424,11 @@ class PatternDataCollector extends GetxController{
 class patternDataModel{
   String userID = ""; // 유저 정보와 연결하기 위함
   int sessionID = 0;  // 한 번의 테스트당 복수 개의 패턴을 그리므로, 각 테스트를 하나의 세션으로 구분
-  int submitCount;    // 해당 세션에서 몇 번째 제출인지
+  int submitCount = 0;    // 해당 세션에서 몇 번째 제출인지
 
   Timestamp? _submitTime;
-  List<int> _pattern;
-  bool _inPool;
+  List<int> _pattern = [];
+  bool _inPool = false;
   bool _success = false;
 
   List<double> _pos_x = [];
