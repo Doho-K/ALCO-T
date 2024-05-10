@@ -177,7 +177,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
       }
 
       // 데이터를 파이어베이스에 전송
-      collector!.setData(patternDataModel(pattern, inPool,success, pos, acc, gyro));
+      collector!.setData(patternDataModel(pattern, inPool, success, timestamp, pos, acc, gyro));
       collector!.saveData();
     }
     _clearCodes();
@@ -431,6 +431,7 @@ class patternDataModel{
   bool _inPool = false;
   bool _success = false;
 
+  List<int> _timestamp = [];
   List<double> _pos_x = [];
   List<double> _pos_y = [];
   List<double> _acc_x = [];
@@ -440,10 +441,11 @@ class patternDataModel{
   List<double> _gyro_y = [];
   List<double> _gyro_z = [];
 
-  patternDataModel(List<int> pattern, bool inPool, bool success, List<Offset> pos, List<List<double>> acc, List<List<double>> gyro){
+  patternDataModel(List<int> pattern, bool inPool, bool success, List<int> timestamp, List<Offset> pos, List<List<double>> acc, List<List<double>> gyro){
     _pattern = pattern;
     _inPool = inPool;
     _success = success;
+    _timestamp = timestamp;
     _pos_x = pos.map((offset) => offset.dx).toList();
     _pos_y = pos.map((offset) => offset.dy).toList();
     _acc_x = acc.map((accInstance) => accInstance[0]).toList();
@@ -462,6 +464,7 @@ class patternDataModel{
         _pattern = json['pattern'],
         _inPool = json['inPool'],
         _success = json['success'],
+        _timestamp = json['timestamp'],
         _pos_x = json['pos_x'],
         _pos_y = json['pos_y'],
         _acc_x = json['acc_x'],
@@ -480,6 +483,7 @@ class patternDataModel{
       'pattern': _pattern,
       'inPool': _inPool,
       'success': _success,
+      'timestamp': _timestamp,
       'pos_x': _pos_x,
       'pos_y': _pos_y,
       'acc_x': _acc_x,
