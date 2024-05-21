@@ -52,6 +52,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
   List<bool> inPool = [];
   int index = 0;
   List<int> pattern = [];
+  List<Offset> pattern_offset = [];
 
   final int INTERVAL = 5;  // 기록 간격
   int timeBefore = -100;       // 이전 기록 시간
@@ -115,7 +116,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
                   onPanEnd: _onPanEnd,
                   child: CustomPaint(
                     painter: _LockScreenPainter(
-                        codes: codes, offset: offset, onSelect: _onSelect, pattern: pattern, pos: pos),
+                        codes: codes, offset: offset, onSelect: _onSelect, pattern: pattern, pos: pos, pattern_offset: pattern_offset),
                     size: _sizePainter,
                   ),
                 ),
@@ -214,7 +215,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
       }
 
       // 데이터를 파이어베이스에 전송
-      collector!.setData(patternDataModel(pattern, inPool[index], success, pos_timestamp, pos, acc_timestamp, acc, gyro_timestamp, gyro));
+      collector!.setData(patternDataModel(pattern, pattern_offset, inPool[index], success, pos_timestamp, pos, acc_timestamp, acc, gyro_timestamp, gyro));
       collector!.saveData();
 
       // 다음 패턴 선택
@@ -257,6 +258,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
     else{
       pattern = randomPattern();
     }
+    pattern_offset = [];
   }
   randomPattern(){
     List<int> pattern = [];
@@ -338,13 +340,20 @@ class _LockScreenPainter extends CustomPainter {
 
   final List<Offset> pos;
 
+  final List<Offset> pattern_offset;
+
   _LockScreenPainter({
     required this.codes,
     required this.offset,
     required this.onSelect,
     required this.pattern,
     required this.pos,
-  });
+    required this.pattern_offset,
+  }){
+    for(var point in pattern){
+      pattern_offset.add(_getOffsetByIndex(point));
+    }
+  }
 
   double get _gridSize => size.width / _col;
 
@@ -435,12 +444,15 @@ class _LockScreenPainter extends CustomPainter {
       _drawLine(canvas, _start, _end, _palette["grey"]);
     }
 
+    /*
     // 지금까지 지난 경로 그리기
     for(int i=1; i<codes.length; i++){
       var _start = _getOffsetByIndex(codes[i-1]);
       var _end = _getOffsetByIndex(codes[i]);
       _drawLine(canvas, _start, _end, _palette["white"]);
     }
+    */
+
     // 마지막으로 선택된 원에서 현재 터치 위치를 잇는 직선 그리기
     if(offset != null && codes.isNotEmpty){
       var _start = _getOffsetByIndex(codes.last);
@@ -488,6 +500,8 @@ class patternDataModel{
 
   Timestamp? _submitTime;
   List<int> _pattern = [];
+  List<double> _pattern_offset_x = [];
+  List<double> _pattern_offset_y = [];
   bool _inPool = false;
   bool _success = false;
 
@@ -503,8 +517,10 @@ class patternDataModel{
   List<double> _gyro_y = [];
   List<double> _gyro_z = [];
 
-  patternDataModel(List<int> pattern, bool inPool, bool success, List<int> pos_timestamp, List<Offset> pos, List<int> acc_timestamp, List<List<double>> acc, List<int> gyro_timestamp, List<List<double>> gyro){
+  patternDataModel(List<int> pattern, List<Offset> pattern_offset, bool inPool, bool success, List<int> pos_timestamp, List<Offset> pos, List<int> acc_timestamp, List<List<double>> acc, List<int> gyro_timestamp, List<List<double>> gyro){
     _pattern = pattern;
+    _pattern_offset_x = pattern_offset.map((offset) => offset.dx).toList();
+    _pattern_offset_y = pattern_offset.map((offset) => offset.dy).toList();
     _inPool = inPool;
     _success = success;
     _posTimestamp = pos_timestamp;
@@ -526,6 +542,8 @@ class patternDataModel{
         submitCount = json['submitCount'],
         _submitTime = json['submitTime'],
         _pattern = json['pattern'],
+        _pattern_offset_x = json['pattern_offset_x'],
+        _pattern_offset_y = json['pattern_offset_y'],
         _inPool = json['inPool'],
         _success = json['success'],
         _posTimestamp = json['posTimestamp'],
@@ -547,6 +565,8 @@ class patternDataModel{
       'submitCount': submitCount,
       'submitTime': _submitTime ?? FieldValue.serverTimestamp(),
       'pattern': _pattern,
+      'pattern_offset_x': _pattern_offset_x,
+      'pattern_offset_y': _pattern_offset_y,
       'inPool': _inPool,
       'success': _success,
       'posTimestamp': _posTimestamp,
