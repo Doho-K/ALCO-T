@@ -414,9 +414,12 @@ class _LockScreenPainter extends CustomPainter {
           _drawCircle(canvas, _offset, _radius, _palette["white"]!, true);
       }
 
+      /*
+      // 기록된 pos 경로 그리기
       for(var j=1; j<pos.length; j++){
         _drawLine(canvas, pos[j-1], pos[j], Colors.red);
       }
+      */
 
       // 아직 지나지 않은 원 위를 지나가면 선택에 추가
       var _pathGesture = _getCirclePath(_offset, _radius);
@@ -447,14 +450,12 @@ class _LockScreenPainter extends CustomPainter {
       _drawLine(canvas, _start, _end, _palette["grey"]);
     }
 
-    /*
     // 지금까지 지난 경로 그리기
     for(int i=1; i<codes.length; i++){
       var _start = _getOffsetByIndex(codes[i-1]);
       var _end = _getOffsetByIndex(codes[i]);
       _drawLine(canvas, _start, _end, _palette["white"]);
     }
-    */
 
     // 마지막으로 선택된 원에서 현재 터치 위치를 잇는 직선 그리기
     if(offset != null && codes.isNotEmpty){
