@@ -29,7 +29,8 @@ class _SelectionState extends State<SelectionPage> {
   Size screenSize = Size(100,100);
 
   List<Figure> figures = [];// 도형 목록
-  int num = 3;              // 그릴 도형 수
+  int num = 4;              // 그릴 도형 수
+  int count = 0;
 
   DateTime? start;      // 문제 시작 시간
   int responseTime = 0; // 도형 고르는 데까지 걸린 시간
@@ -175,13 +176,13 @@ class _SelectionState extends State<SelectionPage> {
       Offset touched_offset = offset!;
       int touch_duration = DateTime.now().difference(start!).inMilliseconds - responseTime;
 
-      collector!.setData(selectionDataModel(num, selected_offset, selected_color, selected_shape, answer_offset, answer_color, answer_shape, touched_offset, touchCount, responseTime, touch_duration));
+      result = (selected == figures[targetIndex]);
+
+      collector!.setData(selectionDataModel(result, num, selected_offset, selected_color, selected_shape, answer_offset, answer_color, answer_shape, touched_offset, touchCount, responseTime, touch_duration));
       collector!.saveData();
 
       num++;
-      setState(() {
-        result = (selected == figures[targetIndex]);
-      });
+      setState(() {});
       Future.delayed(Duration(seconds: 1), () {
         if(num < 7){
           setState(() {
@@ -520,6 +521,8 @@ class selectionDataModel{
 
   Timestamp? _submitTime;
 
+  bool _success = false;
+
   double _selected_x = 0, _selected_y = 0;
   String _selected_color = "";
   String _selected_shape = "";
@@ -534,7 +537,8 @@ class selectionDataModel{
   int _responseTime = 0;
   int _touch_duration = 0;
 
-  selectionDataModel(int numOfFigs, Offset selected_offset, String selected_color, String selected_shape, Offset answer_offset, String answer_color, String answer_shape, Offset touched_offset, int touchCount, int responseTime, int touch_duration){
+  selectionDataModel(bool success, int numOfFigs, Offset selected_offset, String selected_color, String selected_shape, Offset answer_offset, String answer_color, String answer_shape, Offset touched_offset, int touchCount, int responseTime, int touch_duration){
+    _success = success;
     _numOfFigs = numOfFigs;
     _selected_x = selected_offset.dx;
     _selected_y = selected_offset.dy;
@@ -554,6 +558,7 @@ class selectionDataModel{
   selectionDataModel.fromJson(Map<String, dynamic> json)
       : userID = json['userID'],
         sessionID = json['sessionID'],
+        _success = json['success'],
         _numOfFigs = json['numberOfFigures'],
         _submitTime = json['submitTime'],
         _selected_x = json['selected_x'],
@@ -574,6 +579,7 @@ class selectionDataModel{
     return {
       'userID': userID,
       'sessionID': sessionID,
+      'success': _success,
       'numberOfFigures': _numOfFigs,
       'submitTime': _submitTime ?? FieldValue.serverTimestamp(),
       'selected_x': _selected_x,
