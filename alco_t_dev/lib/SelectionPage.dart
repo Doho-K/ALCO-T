@@ -178,13 +178,13 @@ class _SelectionState extends State<SelectionPage> {
 
       result = (selected == figures[targetIndex]);
 
-      collector!.setData(selectionDataModel(result, num, selected_offset, selected_color, selected_shape, answer_offset, answer_color, answer_shape, touched_offset, touchCount, responseTime, touch_duration));
+      collector!.setData(selectionDataModel(result, num, count, selected_offset, selected_color, selected_shape, answer_offset, answer_color, answer_shape, touched_offset, touchCount, responseTime, touch_duration));
       collector!.saveData();
 
-      num++;
+      count++;
       setState(() {});
       Future.delayed(Duration(seconds: 1), () {
-        if(num < 7){
+        if(count <= 5){
           setState(() {
             randomFigures(num);
             offset = null;
@@ -517,7 +517,8 @@ class SelectionDataCollector extends GetxController{
 class selectionDataModel{
   String userID = ""; // 유저 정보와 연결하기 위함
   int sessionID = 0;  // 한 번의 테스트당 복수 개의 패턴을 그리므로, 각 테스트를 하나의 세션으로 구분
-  int _numOfFigs = 0;  // 문제에서 주어진 도형 수
+  int _numOfFigs = 0; // 문제에서 주어진 도형 수
+  int _count = 0;     // 몇 번째 문제인지
 
   Timestamp? _submitTime;
 
@@ -537,9 +538,10 @@ class selectionDataModel{
   int _responseTime = 0;
   int _touch_duration = 0;
 
-  selectionDataModel(bool success, int numOfFigs, Offset selected_offset, String selected_color, String selected_shape, Offset answer_offset, String answer_color, String answer_shape, Offset touched_offset, int touchCount, int responseTime, int touch_duration){
+  selectionDataModel(bool success, int numOfFigs, int count, Offset selected_offset, String selected_color, String selected_shape, Offset answer_offset, String answer_color, String answer_shape, Offset touched_offset, int touchCount, int responseTime, int touch_duration){
     _success = success;
     _numOfFigs = numOfFigs;
+    _count = count;
     _selected_x = selected_offset.dx;
     _selected_y = selected_offset.dy;
     _selected_color = selected_color;
@@ -560,6 +562,7 @@ class selectionDataModel{
         sessionID = json['sessionID'],
         _success = json['success'],
         _numOfFigs = json['numberOfFigures'],
+        _count = json['count'],
         _submitTime = json['submitTime'],
         _selected_x = json['selected_x'],
         _selected_y = json['selected_y'],
@@ -581,6 +584,7 @@ class selectionDataModel{
       'sessionID': sessionID,
       'success': _success,
       'numberOfFigures': _numOfFigs,
+      'count': _count,
       'submitTime': _submitTime ?? FieldValue.serverTimestamp(),
       'selected_x': _selected_x,
       'selected_y': _selected_y,
