@@ -53,6 +53,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
   int index = 0;
   List<int> pattern = [];
   List<Offset> pattern_offset = [];
+  int trial = 0;
 
   final int INTERVAL = 5;  // 기록 간격
   int timeBefore = -100;       // 이전 기록 시간
@@ -200,6 +201,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
   }
 
   void _onPanEnd(DragEndDetails event){
+    trial++;
     if(codes.isNotEmpty){
       // 통과 여부 판단
       bool success = false;
@@ -215,7 +217,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
       }
 
       // 데이터를 파이어베이스에 전송
-      collector!.setData(patternDataModel(pattern, pattern_offset, inPool[index], success, pos_timestamp, pos, acc_timestamp, acc, gyro_timestamp, gyro));
+      collector!.setData(patternDataModel(index, trial, pattern, pattern_offset, inPool[index], success, pos_timestamp, pos, acc_timestamp, acc, gyro_timestamp, gyro));
       collector!.saveData();
 
       // 다음 패턴 선택
@@ -223,6 +225,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
         index++;
         if(index < inPool.length){
           setPattern();
+          trial = 0;
         }
         else{
           Navigator.pop(context);
@@ -469,7 +472,6 @@ class _LockScreenPainter extends CustomPainter {
 class PatternDataCollector extends GetxController{
   String userID;
   int sessionID;
-  int submitCount = 1;
   patternDataModel? _data;
 
   PatternDataCollector({required this.userID, required this.sessionID});
@@ -478,12 +480,10 @@ class PatternDataCollector extends GetxController{
     _data = dataInstance;
     _data!.userID = userID;
     _data!.sessionID = sessionID;
-    _data!.submitCount = submitCount;
   }
 
   void saveData() async {
     try{
-      submitCount++;
       await FirebaseFirestore.instance.collection('pattern').add(_data!.toJson());
     }
     catch(e){
@@ -496,7 +496,9 @@ class PatternDataCollector extends GetxController{
 class patternDataModel{
   String userID = ""; // 유저 정보와 연결하기 위함
   int sessionID = 0;  // 한 번의 테스트당 복수 개의 패턴을 그리므로, 각 테스트를 하나의 세션으로 구분
-  int submitCount = 0;    // 해당 세션에서 몇 번째 제출인지
+  
+  int _patternCount = 0; // 몇 번째 패턴 시도중인지
+  int _submitCount = 0;  // 해당 패턴에서 몇 번째 제출인지
 
   Timestamp? _submitTime;
   List<int> _pattern = [];
@@ -517,7 +519,9 @@ class patternDataModel{
   List<double> _gyro_y = [];
   List<double> _gyro_z = [];
 
-  patternDataModel(List<int> pattern, List<Offset> pattern_offset, bool inPool, bool success, List<int> pos_timestamp, List<Offset> pos, List<int> acc_timestamp, List<List<double>> acc, List<int> gyro_timestamp, List<List<double>> gyro){
+  patternDataModel(int patternCount, int submitCount, List<int> pattern, List<Offset> pattern_offset, bool inPool, bool success, List<int> pos_timestamp, List<Offset> pos, List<int> acc_timestamp, List<List<double>> acc, List<int> gyro_timestamp, List<List<double>> gyro){
+    _patternCount = patternCount;
+    _submitCount = submitCount;
     _pattern = pattern;
     _pattern_offset_x = pattern_offset.map((offset) => offset.dx).toList();
     _pattern_offset_y = pattern_offset.map((offset) => offset.dy).toList();
@@ -539,7 +543,9 @@ class patternDataModel{
   patternDataModel.fromJson(Map<String, dynamic> json)
       : userID = json['userID'],
         sessionID = json['sessionID'],
-        submitCount = json['submitCount'],
+        
+        _patternCount = json['patternCount'], 
+        _submitCount = json['submitCount'],
         _submitTime = json['submitTime'],
         _pattern = json['pattern'],
         _pattern_offset_x = json['pattern_offset_x'],
@@ -562,7 +568,8 @@ class patternDataModel{
     return {
       'userID': userID,
       'sessionID': sessionID,
-      'submitCount': submitCount,
+      'patternCount': _patternCount,
+      'submitCount': _submitCount,
       'submitTime': _submitTime ?? FieldValue.serverTimestamp(),
       'pattern': _pattern,
       'pattern_offset_x': _pattern_offset_x,
