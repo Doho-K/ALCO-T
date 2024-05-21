@@ -7,8 +7,10 @@ import 'package:get/get.dart';
 class PatternSwipingPage extends StatefulWidget {
   final String userID;
   final int sessionID;
+  final int inPattern;
+  final int randPattern;
 
-  PatternSwipingPage({required this.userID, required this.sessionID});
+  PatternSwipingPage({required this.userID, required this.sessionID, required this.inPattern, required this.randPattern});
 
   @override
   _PatternSwipingState createState() => _PatternSwipingState();
@@ -37,24 +39,37 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
   ];  // 그려야 될 패턴
   DateTime? start;          // 시작 시간. 처음으로 원에 닿은 시간을 기준으로 함
   List<Offset> pos = [];    // 움직인 위치 기록(x,y)
-  List<int> timestamp = [];  // 움직인 시간 기록(ms)
-  List<List<double>> acc = []; // 가속도계 기록(x,y,z)
-  List<List<double>> gyro = []; // 자이로 기록(x,y,z)
+  List<int> pos_timestamp = [];   // 움직인 시간 기록(ms)
+  List<List<double>> acc = [];    // 가속도계 기록(x,y,z)
+  List<int> acc_timestamp = [];   // 가속도계 갱신 시간 기록(ms)
+  List<List<double>> gyro = [];   // 자이로 기록(x,y,z)
+  List<int> gyro_timestamp = [];  // 자이로 갱신 시간 기록(ms)
   bool acc_available = true;
   bool gyro_available = true;
   Duration sensorInterval = SensorInterval.normalInterval;
 
   Random random = Random();
-  bool inPool = true; // 패턴 풀 내에서 뽑기
+  List<bool> inPool = [];
+  int index = 0;
   List<int> pattern = [];
+
+  final int INTERVAL = 5;  // 기록 간격
+  int timeBefore = -100;       // 이전 기록 시간
   
   PatternDataCollector? collector;
 
   @override
   void initState(){
     super.initState();
-    setPattern();
     collector = PatternDataCollector(userID: widget.userID, sessionID: widget.sessionID);
+    for(int i=0; i<widget.inPattern; i++){
+      inPool.add(false);
+    }
+    for(int i=0; i<widget.randPattern; i++){
+      inPool.add(true);
+    }
+    inPool.shuffle();
+    setPattern();
   }
 
   @override
@@ -100,7 +115,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
                   onPanEnd: _onPanEnd,
                   child: CustomPaint(
                     painter: _LockScreenPainter(
-                        codes: codes, offset: offset, onSelect: _onSelect, pattern: pattern),
+                        codes: codes, offset: offset, onSelect: _onSelect, pattern: pattern, pos: pos),
                     size: _sizePainter,
                   ),
                 ),
@@ -118,6 +133,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
   void _onPanStart(DragStartDetails event) {
     _clearCodes();
     start = DateTime.now();
+    setState(() => offset = event.localPosition);
   }
 
   void _onPanUpdate(DragUpdateDetails event) {
@@ -126,31 +142,57 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
     }
     else{
       // 움직임 기록
-      timestamp.add(DateTime.now().difference(start!).inMilliseconds);
-      pos.add(event.localPosition);
-      // 가속도계 기록
-      if(acc_available){
-        accelerometerEventStream(samplingPeriod: sensorInterval).listen(
-          (AccelerometerEvent event) {
-            acc.add([event.x,event.y,event.z]);
-          },
-          onError: (e) {
-            acc_available = false;
-          },
-          cancelOnError: true,
-        );
-      }
-      // 자이로 기록
-      if(gyro_available){
-        gyroscopeEventStream(samplingPeriod: sensorInterval).listen(
-          (GyroscopeEvent event) {
-            gyro.add([event.x,event.y,event.z]);
-          },
-          onError: (e) {
-            gyro_available = false;
-          },
-          cancelOnError: true,
-        );
+      if(codes.length < pattern.length){
+        int interval = DateTime.now().difference(start!).inMilliseconds;
+        if(interval - timeBefore > INTERVAL){
+          timeBefore = interval;
+          pos_timestamp.add(interval);
+          pos.add(event.localPosition);
+        }
+        // 가속도계 기록
+        if(acc_available){
+          accelerometerEventStream(samplingPeriod: sensorInterval).listen(
+            (AccelerometerEvent event) {
+              if(acc.isEmpty){
+                acc.add([event.x,event.y,event.z]);
+                acc_timestamp.add(interval);
+              }
+              else{
+                var lastEvent = acc.last;
+                if(lastEvent[0] != event.x || lastEvent[1] != event.y || lastEvent[2] != event.z){
+                  acc.add([event.x,event.y,event.z]);
+                  acc_timestamp.add(interval);
+                }
+              }
+            },
+            onError: (e) {
+              acc_available = false;
+            },
+            cancelOnError: true,
+          );
+        }
+        // 자이로 기록
+        if(gyro_available){
+          gyroscopeEventStream(samplingPeriod: sensorInterval).listen(
+            (GyroscopeEvent event) {
+              if(gyro.isEmpty){
+                gyro.add([event.x,event.y,event.z]);
+                gyro_timestamp.add(interval);
+              }
+              else{
+                var lastEvent = gyro.last;
+                if(lastEvent[0] != event.x || lastEvent[1] != event.y || lastEvent[2] != event.z){
+                  gyro.add([event.x,event.y,event.z]);
+                  gyro_timestamp.add(interval);
+                }
+              }
+            },
+            onError: (e) {
+              gyro_available = false;
+            },
+            cancelOnError: true,
+          );
+        }
       }
     }
     setState(() => offset = event.localPosition);
@@ -171,14 +213,20 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
         }
       }
 
+      // 데이터를 파이어베이스에 전송
+      collector!.setData(patternDataModel(pattern, inPool[index], success, pos_timestamp, pos, acc_timestamp, acc, gyro_timestamp, gyro));
+      collector!.saveData();
+
       // 다음 패턴 선택
       if(success){
-        setPattern();
+        index++;
+        if(index < inPool.length){
+          setPattern();
+        }
+        else{
+          Navigator.pop(context);
+        }
       }
-
-      // 데이터를 파이어베이스에 전송
-      collector!.setData(patternDataModel(pattern, inPool, success, timestamp, pos, acc, gyro));
-      collector!.saveData();
     }
     _clearCodes();
   }
@@ -193,12 +241,17 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
     codes = [];
     offset = null;
     start = null;
+    pos_timestamp = [];
     pos = [];
-    timestamp = [];
+    acc_timestamp = [];
+    acc = [];
+    gyro_timestamp = [];
+    gyro = [];
+    timeBefore = -INTERVAL*2;
   });
   
   setPattern(){
-    if(inPool){
+    if(inPool[index]){
       pattern = patternPool[random.nextInt(patternPool.length)];
     }
     else{
@@ -207,7 +260,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
   }
   randomPattern(){
     List<int> pattern = [];
-    int length = random.nextInt(5)+5; // 패턴 길이 == 0~5
+    int length = random.nextInt(3)+5; // 패턴 길이 == 5~7
     pattern.add(random.nextInt(9)); // 시작점
     while(pattern.length != length){
       // 다음 점 선택
@@ -246,7 +299,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
       pattern.add(next);
     }
 
-    // 너무 간단한 패턴인지 확인. 패턴이 최소 4개의 직선으로 이루어지게
+    // 너무 간단한 패턴인지 확인. 패턴이 최소 3개의 직선으로 이루어지게
     int change = 0;
     for(int i=2; i<length; i++){
       List<int> A = [ pattern[i-2]~/3, pattern[i-2]%3 ];
@@ -258,7 +311,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
         change++;
       }
     }
-    if(change<4){
+    if(change<3){
       pattern = randomPattern();
     }
 
@@ -283,11 +336,14 @@ class _LockScreenPainter extends CustomPainter {
     "red" : Colors.red,
   };
 
+  final List<Offset> pos;
+
   _LockScreenPainter({
     required this.codes,
     required this.offset,
     required this.onSelect,
     required this.pattern,
+    required this.pos,
   });
 
   double get _gridSize => size.width / _col;
@@ -337,13 +393,17 @@ class _LockScreenPainter extends CustomPainter {
     for (var i = 0; i < _totalNode; i++) {
       // 원 그리기
       var _offset = _getOffsetByIndex(i);  // 원 위치
-      var _radius = _gridSize / 2.0 * 0.12;  // 원 반지름
+      var _radius = _gridSize / 2.0 * 0.18;  // 원 반지름
       _drawCircle(canvas, _offset, _radius, _palette["white"]!, true);
       if(i == pattern[0]){
         _drawCircle(canvas, _offset, _radius, _palette["red"]!, true);
       }
       else{
           _drawCircle(canvas, _offset, _radius, _palette["white"]!, true);
+      }
+
+      for(var j=1; j<pos.length; j++){
+        _drawLine(canvas, pos[j-1], pos[j], Colors.red);
       }
 
       // 아직 지나지 않은 원 위를 지나가면 선택에 추가
@@ -431,26 +491,30 @@ class patternDataModel{
   bool _inPool = false;
   bool _success = false;
 
-  List<int> _timestamp = [];
+  List<int> _posTimestamp = [];
   List<double> _pos_x = [];
   List<double> _pos_y = [];
+  List<int> _accTimestamp = [];
   List<double> _acc_x = [];
   List<double> _acc_y = [];
   List<double> _acc_z = [];
+  List<int> _gyroTimestamp = [];
   List<double> _gyro_x = [];
   List<double> _gyro_y = [];
   List<double> _gyro_z = [];
 
-  patternDataModel(List<int> pattern, bool inPool, bool success, List<int> timestamp, List<Offset> pos, List<List<double>> acc, List<List<double>> gyro){
+  patternDataModel(List<int> pattern, bool inPool, bool success, List<int> pos_timestamp, List<Offset> pos, List<int> acc_timestamp, List<List<double>> acc, List<int> gyro_timestamp, List<List<double>> gyro){
     _pattern = pattern;
     _inPool = inPool;
     _success = success;
-    _timestamp = timestamp;
+    _posTimestamp = pos_timestamp;
     _pos_x = pos.map((offset) => offset.dx).toList();
     _pos_y = pos.map((offset) => offset.dy).toList();
+    _accTimestamp = acc_timestamp;
     _acc_x = acc.map((accInstance) => accInstance[0]).toList();
     _acc_y = acc.map((accInstance) => accInstance[1]).toList();
     _acc_z = acc.map((accInstance) => accInstance[2]).toList();
+    _gyroTimestamp = gyro_timestamp;
     _gyro_x = gyro.map((gyroInstance) => gyroInstance[0]).toList();
     _gyro_y = gyro.map((gyroInstance) => gyroInstance[1]).toList();
     _gyro_z = gyro.map((gyroInstance) => gyroInstance[2]).toList();
@@ -464,12 +528,14 @@ class patternDataModel{
         _pattern = json['pattern'],
         _inPool = json['inPool'],
         _success = json['success'],
-        _timestamp = json['timestamp'],
+        _posTimestamp = json['posTimestamp'],
         _pos_x = json['pos_x'],
         _pos_y = json['pos_y'],
+        _accTimestamp = json['accTimestamp'],
         _acc_x = json['acc_x'],
         _acc_y = json['acc_y'],
         _acc_z = json['acc_z'],
+        _gyroTimestamp = json['gyroTimestamp'],
         _gyro_x = json['gyro_x'],
         _gyro_y = json['gyro_y'],
         _gyro_z = json['gyro_z'];
@@ -483,12 +549,14 @@ class patternDataModel{
       'pattern': _pattern,
       'inPool': _inPool,
       'success': _success,
-      'timestamp': _timestamp,
+      'posTimestamp': _posTimestamp,
       'pos_x': _pos_x,
       'pos_y': _pos_y,
+      'accTimestamp': _accTimestamp,
       'acc_x': _acc_x,
       'acc_y': _acc_y,
       'acc_z': _acc_z,
+      'gyroTimestamp': _gyroTimestamp,
       'gyro_x': _gyro_x,
       'gyro_y': _gyro_y,
       'gyro_z': _gyro_z,

@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:alco_t_dev/MapSearchPage.dart';
+import 'package:alco_t_dev/SelectionPage.dart';
 
 class infoPage extends StatefulWidget{
   const infoPage({Key? key}) : super(key: key);
@@ -80,7 +81,7 @@ class _infoPageState extends State<infoPage>{
             ),
             SizedBox(height: 20.0),
             ElevatedButton(onPressed: (){
-              Get.to(PatternSwipingPage(userID: "", sessionID: 1));//이 안에 이동할 페이지 클래스를 넣어주면 됨
+              Get.to(PatternSwipingPage(userID: "", sessionID: 1, inPattern: 3, randPattern: 2));//이 안에 이동할 페이지 클래스를 넣어주면 됨
             }, child: Text('스와이핑 테스크 페이지로 이동')),
             SizedBox(height: 20.0),
             ElevatedButton(onPressed: (){
@@ -90,7 +91,10 @@ class _infoPageState extends State<infoPage>{
             ElevatedButton(onPressed: (){
               Get.to(GyroTask());//이 안에 이동할 페이지 클래스를 넣어주면 됨
             }, child: Text('자이로 테스크 페이지로 이동')),
-
+            SizedBox(height: 20.0),
+            ElevatedButton(onPressed: (){
+              Get.to(SelectionPage(userID: "", sessionID: 1));//이 안에 이동할 페이지 클래스를 넣어주면 됨
+            }, child: Text('선택 테스크 페이지로 이동')),
           ],
         ),
       ),
