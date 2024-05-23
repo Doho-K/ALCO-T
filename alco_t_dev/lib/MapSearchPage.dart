@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'korean_keyboard.dart'; // korean_keyboard.dart 파일을 import
+import 'package:google_maps_webservice/places.dart';
+import 'korean_keyboard.dart';
 
 class MapSearchPage extends StatefulWidget {
   @override
@@ -11,6 +12,7 @@ class MapSearchPage extends StatefulWidget {
 class MapSearchPageState extends State<MapSearchPage> {
   Completer<GoogleMapController> _controller = Completer();
   TextEditingController _searchController = TextEditingController();
+  Set<Marker> _markers = {};
 
   // 초기 카메라 위치 : 중앙대학교
   static final CameraPosition _kGooglePlex = CameraPosition(
@@ -46,7 +48,7 @@ class MapSearchPageState extends State<MapSearchPage> {
                           submit: () {
                             // Submit 버튼을 눌렀을 때 실행되는 콜백
                             String searchText = _searchController.text;
-                            showConfirmationPopup(context, searchText);
+                            search(searchText);
                             _searchController.text = '';
                           },
                           cancel: () {
@@ -75,7 +77,7 @@ class MapSearchPageState extends State<MapSearchPage> {
                 onPressed: () {
                   // 검색 버튼을 눌렀을 때 실행되는 콜백
                   String searchText = _searchController.text;
-                  showConfirmationPopup(context, searchText);
+                  search(searchText);
                   _searchController.text = '';
                 },
                 icon: Icon(Icons.search),
@@ -89,42 +91,52 @@ class MapSearchPageState extends State<MapSearchPage> {
               onMapCreated: (GoogleMapController controller) {
                 _controller.complete(controller);
               },
+              markers: _markers,
             ),
           ),
         ],
       ),
     );
   }
+
+  void search(String searchText) async {
+    print('실제 검색을 실행합니다: $searchText');
+
+    final places = GoogleMapsPlaces(apiKey: 'AIzaSyAMBHK74KDN1OsyAkPWl6YoLM27KVmquro');
+
+    PlacesSearchResponse response = await places.searchByText(searchText);
+
+    if (response.isOkay) {
+      // 검색 결과를 처리합니다.
+      for (var result in response.results) {
+        if (result.geometry != null && result.geometry!.location != null) {
+          print('장소 이름: ${result.name}');
+          print('장소 주소: ${result.formattedAddress}');
+          if (result.geometry!.location != null) {
+            print('위도: ${result.geometry!.location!.lat}');
+            print('경도: ${result.geometry!.location!.lng}');
+
+            // 검색된 위치로 카메라 시점을 변경합니다.
+            final GoogleMapController controller = await _controller.future;
+            controller.animateCamera(
+              CameraUpdate.newLatLng(
+                LatLng(
+                  result.geometry!.location!.lat,
+                  result.geometry!.location!.lng,
+                ),
+              ),
+            );
+          } else {
+            print('위치 정보를 찾을 수 없습니다.');
+          }
+          print('---');
+        } else {
+          print('장소의 위치 정보를 찾을 수 없습니다.');
+        }
+      }
+    } else {
+      print('검색에 실패했습니다: ${response.errorMessage}');
+    }
+  }
 }
 
-void showConfirmationPopup(BuildContext context, String searchText) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('확인'),
-        content: Text('$searchText 가 맞습니까?'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              search(searchText);
-              Navigator.of(context).pop();
-            },
-            child: Text('확인'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('취소'),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-void search(String searchText) {
-  print('실제 검색을 실행합니다: $searchText');
-  // 여기에 실제 검색 기능을 구현할 수 있습니다.
-}
