@@ -1,5 +1,6 @@
 import 'package:alco_t_dev/infoPage.dart';
 import 'package:alco_t_dev/main.dart';
+import 'package:alco_t_dev/mainPages/mainPage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -16,7 +17,7 @@ class _landingPageState extends State<landingPage> {
     //GetPage(name: '/info', page: () => infoPage(), transition: Transition.zoom);
     // 2초 후에 HomePage로 이동
     Future.delayed(Duration(seconds: 2), () {
-      Get.to(infoPage());
+      Get.to(mainPage());
       //Get.toNamed('/info');
     });
   }

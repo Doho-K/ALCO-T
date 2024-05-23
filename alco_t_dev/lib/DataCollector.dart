@@ -9,6 +9,7 @@ class DataCollector extends GetxController{
   RxBool taskStart = false.obs;
   RxDouble initY = 0.0.obs;
   RxDouble gyroTime = 0.0.obs;
+  RxString userName = 'test'.obs;
 
   void saveData() async {
     try{

@@ -1,5 +1,6 @@
 import 'package:alco_t_dev/infoPage.dart';
 import 'package:alco_t_dev/landingPage.dart';
+import 'package:alco_t_dev/mainPages/mainPage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -19,15 +20,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Get.to(infoPage());
+        Get.to(mainPage());
       },
       child: GetMaterialApp(
         initialRoute: '/', // 초기 경로 설정
         getPages: [
           GetPage(name: '/', page: () => landingPage()),
+          GetPage(name: '/main', page: () => mainPage()),
           GetPage(name: '/info', page: () => infoPage(), transition: Transition.zoom),
         ],
-        home: landingPage(),//InputScreen(),
+        home: mainPage(),//InputScreen(),
       ),
     );
   }
