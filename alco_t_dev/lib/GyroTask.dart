@@ -37,6 +37,7 @@ class _GyroTaskState extends State<GyroTask> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Text("폰을 기울여 두 공을 만나게 해주세요!"),
             Text('$_count',style: TextStyle(fontSize: 48),),
             /*Text(
               'ACCELEROMETER',
@@ -233,18 +234,6 @@ class _MovingBallState extends State<MovingBall> with TickerProviderStateMixin {
     });
   }
 
-  /*void setBallPosition(double x, double y) {
-    setState(() {
-      _x = x;
-      _y = y;
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }*/
   double distanceBetweenPoints(double x1, double y1, double x2, double y2) {
     double dx = x2 - x1;
     double dy = y2 - y1;
@@ -256,9 +245,9 @@ class _MovingBallState extends State<MovingBall> with TickerProviderStateMixin {
       color: Colors.white,
       child: Column(
         children: [
-          Text(myController.initY.value.toString()),
-          Text(myController.gyroY.value.toString()),
-          Text(myController.gyroTime.value.toString()),
+          /*Text(myController.initY.value.toString()),
+          Text(myController.gyroY.value.toString()),*/
+          Text("${myController.gyroTime.value.toString()}:millisec!"),
           CustomPaint(
             painter: BallPainter(_x, _y),
           ),
