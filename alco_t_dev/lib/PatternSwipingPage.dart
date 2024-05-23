@@ -19,6 +19,7 @@ class PatternSwipingPage extends StatefulWidget {
 class _PatternSwipingState extends State<PatternSwipingPage> {
   Offset? offset;           // 현재 터치 위치
   List<int> codes = [];     // 지나간 원 순서
+  List<int> passingTime = [];     // 해당 원을 지나간 시간
   List<List<int>> patternPool = [
     [0,1,6,5,8],
     [0,5,6,1,8],
@@ -52,7 +53,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
   List<bool> inPool = [];
   int index = 0;
   List<int> pattern = [];
-  List<Offset> pattern_offset = [];
+  List<Offset> grids = [];
   int trial = 0;
 
   final int INTERVAL = 5;  // 기록 간격
@@ -117,7 +118,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
                   onPanEnd: _onPanEnd,
                   child: CustomPaint(
                     painter: _LockScreenPainter(
-                        codes: codes, offset: offset, onSelect: _onSelect, pattern: pattern, pos: pos, pattern_offset: pattern_offset),
+                        codes: codes, offset: offset, onSelect: _onSelect, pattern: pattern, pos: pos, grids: grids),
                     size: _sizePainter,
                   ),
                 ),
@@ -217,7 +218,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
       }
 
       // 데이터를 파이어베이스에 전송
-      collector!.setData(patternDataModel(index, trial, pattern, pattern_offset, inPool[index], success, pos_timestamp, pos, acc_timestamp, acc, gyro_timestamp, gyro));
+      collector!.setData(patternDataModel(index, trial, pattern, codes, passingTime, grids, inPool[index], success, pos_timestamp, pos, acc_timestamp, acc, gyro_timestamp, gyro));
       collector!.saveData();
 
       // 다음 패턴 선택
@@ -238,11 +239,14 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
   _onSelect(int code) {
     if (codes.isEmpty || codes.last != code) {
       codes.add(code);
+      passingTime.add(DateTime.now().difference(start!).inMilliseconds);
     }
   }
 
   _clearCodes() => setState(() {
     codes = [];
+    passingTime = [];
+    grids = [];
     offset = null;
     start = null;
     pos_timestamp = [];
@@ -261,7 +265,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
     else{
       pattern = randomPattern();
     }
-    pattern_offset = [];
+    grids = [];
   }
   randomPattern(){
     List<int> pattern = [];
@@ -343,7 +347,7 @@ class _LockScreenPainter extends CustomPainter {
 
   final List<Offset> pos;
 
-  final List<Offset> pattern_offset;
+  final List<Offset> grids;
 
   _LockScreenPainter({
     required this.codes,
@@ -351,10 +355,10 @@ class _LockScreenPainter extends CustomPainter {
     required this.onSelect,
     required this.pattern,
     required this.pos,
-    required this.pattern_offset,
+    required this.grids,
   }){
-    for(var point in pattern){
-      pattern_offset.add(_getOffsetByIndex(point));
+    for(int i=0; i<9; i++){
+      grids.add(_getOffsetByIndex(i));
     }
   }
 
@@ -503,8 +507,10 @@ class patternDataModel{
 
   Timestamp? _submitTime;
   List<int> _pattern = [];
-  List<double> _pattern_offset_x = [];
-  List<double> _pattern_offset_y = [];
+  List<int> _codes = [];
+  List<int> _passingTime = [];
+  List<double> _grids_x = [];
+  List<double> _grids_y = [];
   bool _inPool = false;
   bool _success = false;
 
@@ -520,12 +526,14 @@ class patternDataModel{
   List<double> _gyro_y = [];
   List<double> _gyro_z = [];
 
-  patternDataModel(int patternCount, int submitCount, List<int> pattern, List<Offset> pattern_offset, bool inPool, bool success, List<int> pos_timestamp, List<Offset> pos, List<int> acc_timestamp, List<List<double>> acc, List<int> gyro_timestamp, List<List<double>> gyro){
+  patternDataModel(int patternCount, int submitCount, List<int> pattern, List<int> codes, List<int> passingTime, List<Offset> grids, bool inPool, bool success, List<int> pos_timestamp, List<Offset> pos, List<int> acc_timestamp, List<List<double>> acc, List<int> gyro_timestamp, List<List<double>> gyro){
     _patternCount = patternCount;
     _submitCount = submitCount;
     _pattern = pattern;
-    _pattern_offset_x = pattern_offset.map((offset) => offset.dx).toList();
-    _pattern_offset_y = pattern_offset.map((offset) => offset.dy).toList();
+    _codes = codes;
+    _passingTime = passingTime;
+    _grids_x = grids.map((offset) => offset.dx).toList();
+    _grids_y = grids.map((offset) => offset.dy).toList();
     _inPool = inPool;
     _success = success;
     _posTimestamp = pos_timestamp;
@@ -549,8 +557,10 @@ class patternDataModel{
         _submitCount = json['submitCount'],
         _submitTime = json['submitTime'],
         _pattern = json['pattern'],
-        _pattern_offset_x = json['pattern_offset_x'],
-        _pattern_offset_y = json['pattern_offset_y'],
+        _codes = json['codes'],
+        _passingTime = json['passingTime'],
+        _grids_x = json['pattern_offset_x'],
+        _grids_y = json['pattern_offset_y'],
         _inPool = json['inPool'],
         _success = json['success'],
         _posTimestamp = json['posTimestamp'],
@@ -573,8 +583,10 @@ class patternDataModel{
       'submitCount': _submitCount,
       'submitTime': _submitTime ?? FieldValue.serverTimestamp(),
       'pattern': _pattern,
-      'pattern_offset_x': _pattern_offset_x,
-      'pattern_offset_y': _pattern_offset_y,
+      'codes': _codes,
+      'passingTime': _passingTime,
+      'pattern_offset_x': _grids_x,
+      'pattern_offset_y': _grids_y,
       'inPool': _inPool,
       'success': _success,
       'posTimestamp': _posTimestamp,
