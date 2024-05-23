@@ -1,4 +1,5 @@
 import 'package:alco_t_dev/infoPage.dart';
+import 'package:alco_t_dev/landingPage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,8 +17,18 @@ void main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      home: InputScreen(),
+    return GestureDetector(
+      onTap: () {
+        Get.to(infoPage());
+      },
+      child: GetMaterialApp(
+        initialRoute: '/', // 초기 경로 설정
+        getPages: [
+          GetPage(name: '/', page: () => landingPage()),
+          GetPage(name: '/info', page: () => infoPage(), transition: Transition.zoom),
+        ],
+        home: landingPage(),//InputScreen(),
+      ),
     );
   }
 }

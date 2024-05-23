@@ -1,4 +1,7 @@
+import 'package:alco_t_dev/infoPage.dart';
+import 'package:alco_t_dev/main.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class landingPage extends StatefulWidget {
   const landingPage({ Key? key }) : super(key: key);
@@ -8,18 +11,27 @@ class landingPage extends StatefulWidget {
 
 class _landingPageState extends State<landingPage> {
   @override
+  void initState() {
+    super.initState();
+    //GetPage(name: '/info', page: () => infoPage(), transition: Transition.zoom);
+    // 2초 후에 HomePage로 이동
+    Future.delayed(Duration(seconds: 2), () {
+      Get.to(infoPage());
+      //Get.toNamed('/info');
+    });
+  }
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('테스트 랜딩 페이지'),
-      ),
+      backgroundColor: Colors.black,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Text("당신의 안전운전을 위해서", style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.w600)),
             Text(
-              '테스트 랜딩 페이지',
-              style: TextStyle(fontSize: 20),
+              'ALCO-T',
+              style: TextStyle(fontSize: 64, color: Color.fromRGBO(255, 77, 77, 1), fontWeight: FontWeight.w600),
             ),
           ],
         ),
