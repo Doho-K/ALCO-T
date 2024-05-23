@@ -76,7 +76,7 @@ class _WidmarkPageState extends State<WidmarkPage>{
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 20.0),
-              Text("권장 휴식시간: ${_formatTime(time)}시간",style: TextStyle(color: Colors.black,fontSize: 20,fontWeight: FontWeight.w600),),
+              Text("권장 휴식시간: ${_formatTime(time)}",style: TextStyle(color: Colors.black,fontSize: 20,fontWeight: FontWeight.w600),),
               SizedBox(height: 20.0),
               Text("위드마크 공식으로 절대적인 기준이 아닙니다.")
             ],
