@@ -19,9 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Get.to(mainPage());
-      },
+
       child: GetMaterialApp(
         initialRoute: '/', // 초기 경로 설정
         getPages: [
