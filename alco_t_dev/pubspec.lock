@@ -352,6 +352,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.9.0"
+  korean_keyboard:
+    dependency: "direct main"
+    description:
+      name: korean_keyboard
+      sha256: "3474bcec56180e87d883149237fed79efa9e9ca1499f1e39ccc29bddf9770316"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   leak_tracker:
     dependency: transitive
     description:
