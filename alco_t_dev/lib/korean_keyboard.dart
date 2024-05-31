@@ -3,8 +3,6 @@ library korean_keyboard;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-//Dev by pitter park
-//Korean Keyboard
 class KoreanKeyboard extends StatefulWidget {
   KoreanKeyboard(
       {Key? key,
@@ -279,7 +277,6 @@ class _KoreanKeyboardState extends State<KoreanKeyboard> {
     } else if (key == 'SPACE') {
       reset();
       wholeText.add(' ');
-      // return;
     } else if (key == 'SHIFT') {
       pressedSHIFT = !pressedSHIFT;
       setState(() {});
@@ -299,7 +296,6 @@ class _KoreanKeyboardState extends State<KoreanKeyboard> {
       return;
     } else if (key == 'DEL') {
       delete();
-      // return;
     } else if (isParent(key)) {
       //print('모음');
       //모음인 경우
@@ -467,7 +463,6 @@ class _KoreanKeyboardState extends State<KoreanKeyboard> {
                               onPress = false;
                               setState(() {});
                             });
-                            //print(wholeText.join());
                           },
                           onTapDown: (TapDownDetails details) {
                             final Offset localPosition = details.localPosition;
@@ -527,20 +522,11 @@ class _KoreanKeyboardState extends State<KoreanKeyboard> {
                                       : key == 'SPACE'
                                       ? onPress
                                       ? const Color(0xFFA8A8A8)
-                                  //   : Setting.isDarkMode
-                                  //       ? const Color.fromARGB(
-                                  //           0, 96, 96, 96)
                                       : Colors.white
                                       : onPress
                                       ? const Color.fromRGBO(
                                       209, 214, 217, 1)
-                                  //   : Setting.isDarkMode
-                                  //       ? const Color.fromRGBO(
-                                  //           96, 96, 96, 1)
                                       : Colors.white),
-                              // border:
-                              //     Border.all(color: Colors.black, width: 1.5),
-                              // borderRadius: BorderRadius.circular(4)),
                               child: Text(
                                 key == 'SPACE'
                                     ? ''
@@ -566,9 +552,6 @@ class _KoreanKeyboardState extends State<KoreanKeyboard> {
                     children: keysIntoLine,
                   );
                 }),
-            // Container(
-            //   child: Text(wholeText.join('')),
-            // )
           ],
         ));
   }

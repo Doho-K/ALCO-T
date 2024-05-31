@@ -1,6 +1,7 @@
 import 'package:alco_t_dev/infoPage.dart';
 import 'package:alco_t_dev/landingPage.dart';
 import 'package:alco_t_dev/mainPages/mainPage.dart';
+import 'package:alco_t_dev/pages/HomePage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
           GetPage(name: '/main', page: () => mainPage()),
           GetPage(name: '/info', page: () => infoPage(), transition: Transition.zoom),
         ],
-        home: mainPage(),//InputScreen(),
+        home: HomePage(),//InputScreen(),
       ),
     );
   }
