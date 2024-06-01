@@ -297,7 +297,6 @@ class _KoreanKeyboardState extends State<KoreanKeyboard> {
     } else if (key == 'DEL') {
       delete();
     } else if (isParent(key)) {
-      //print('모음');
       //모음인 경우
       if (initConsonant == -1 && middleConsonant == -1 && lastConsonant == -1) {
         //중성까지 있는 경우 or 아무것도 없는 경우
