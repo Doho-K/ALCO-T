@@ -1,7 +1,11 @@
 library korean_keyboard;
 
+import 'dart:ffi';
+
+import 'package:alco_t_dev/DataCollector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 class KoreanKeyboard extends StatefulWidget {
   KoreanKeyboard(
@@ -25,6 +29,7 @@ class _KoreanKeyboardState extends State<KoreanKeyboard> {
   Function submit;
   Function changeText;
   Function cancel;
+  final myController = Get.put(DataCollector());
 
   var specialKeys = [
     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
@@ -470,6 +475,17 @@ class _KoreanKeyboardState extends State<KoreanKeyboard> {
                             DateTime now = DateTime.now();
                             int time = now.millisecondsSinceEpoch;
                             // firebase로 전송할 데이터
+                            if(myController.typeTaskStart.value == true){
+                              if(key == "DEL"){
+                                if(myController.typeTaskIndex.value > 0){
+                                  myController.typeTaskIndex.value -= 1;
+                                  myController.delCount.value += 1;
+                                }
+                              }
+                              else{
+                                myController.typeTaskIndex.value += 1;
+                              }
+                            }
                             print('Button "$key" tapped at ($xPos, $yPos)');
                             print('time : "${time} (ms)"');
                             setState(() {});

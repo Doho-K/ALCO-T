@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:alco_t_dev/DataCollector.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'korean_keyboard.dart';
@@ -13,6 +15,9 @@ class MapSearchPageState extends State<MapSearchPage> {
   Completer<GoogleMapController> _controller = Completer();
   TextEditingController _searchController = TextEditingController();
   Set<Marker> _markers = {};
+  final myController = Get.put(DataCollector());
+  Stopwatch stopwatch = Stopwatch();
+  Stopwatch stopwatch2 = Stopwatch();
 
   // 초기 카메라 위치 : 중앙대학교
   static final CameraPosition _kGooglePlex = CameraPosition(
@@ -48,6 +53,9 @@ class MapSearchPageState extends State<MapSearchPage> {
                           submit: () {
                             // Submit 버튼을 눌렀을 때 실행되는 콜백
                             String searchText = _searchController.text;
+                            myController.typeTaskStart.value = false;
+                            stopwatch.stop();
+                            myController.typeTaskTime.value = stopwatch.elapsedMilliseconds.toDouble();
                             search(searchText);
                             _searchController.text = '';
                           },
@@ -68,6 +76,17 @@ class MapSearchPageState extends State<MapSearchPage> {
                       ),
                       onChanged: (value) {
                         // 검색어가 변경될 때마다 실행되는 콜백
+                        if(value.length <= 1 && myController.typeTaskStart.value == false){//시작전
+                          myController.typeTaskStart.value = true;
+                          stopwatch.start();
+                          stopwatch2.start();
+                        }
+                        else{
+                          stopwatch2.stop();
+                          myController.keystrokeTime.add(stopwatch2.elapsedMilliseconds.toDouble());
+                          stopwatch2.reset();
+                          stopwatch2.start();
+                        }
                       },
                     ),
                   ),
@@ -77,6 +96,9 @@ class MapSearchPageState extends State<MapSearchPage> {
                 onPressed: () {
                   // 검색 버튼을 눌렀을 때 실행되는 콜백
                   String searchText = _searchController.text;
+                  myController.typeTaskStart.value = false;
+                  stopwatch.stop();
+                  myController.typeTaskTime.value = stopwatch.elapsedMilliseconds.toDouble();
                   search(searchText);
                   _searchController.text = '';
                 },
@@ -112,6 +134,7 @@ class MapSearchPageState extends State<MapSearchPage> {
         if (result.geometry != null && result.geometry!.location != null) {
           print('장소 이름: ${result.name}');
           print('장소 주소: ${result.formattedAddress}');
+          myController.saveTypeTask();
           if (result.geometry!.location != null) {
             print('위도: ${result.geometry!.location!.lat}');
             print('경도: ${result.geometry!.location!.lng}');

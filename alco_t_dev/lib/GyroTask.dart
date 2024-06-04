@@ -173,6 +173,10 @@ class _MovingBallState extends State<MovingBall> with TickerProviderStateMixin {
   int missionX = 0;
   int missionY = 0;
   Stopwatch stopwatch = Stopwatch();
+  List<double> gyroX = [];
+  List<double> gyroY = [];
+  double gyroXMax = 0;
+  double gyroYMax = 0;
 
   @override
   void initState() {
@@ -223,10 +227,29 @@ class _MovingBallState extends State<MovingBall> with TickerProviderStateMixin {
               _y = -400;
             }
           }
+
+
+          gyroX.add(myController.gyroX.value);
+          gyroY.add(myController.gyroY.value);
+
           if(distanceBetweenPoints(_x, _y, missionX.toDouble(), missionY.toDouble())<3){
             myController.taskStart.value = false;
             myController.gyroTime.value = stopwatch.elapsedMilliseconds.toDouble();
+            for(int i = 0; i<gyroX.length; i++){
+              if(gyroX[i].abs()>gyroXMax){
+                gyroXMax = gyroX[i].abs();
+              }
+              if(gyroY[i].abs()>gyroYMax){
+                gyroYMax = gyroY[i].abs();
+              }
+            }
+            myController.saveGyroTask(gyroX.first, gyroY.first, gyroXMax, gyroYMax, myController.gyroTime.value);
+            gyroX.clear();
+            gyroY.clear();
+            gyroYMax=0;
+            gyroXMax=0;
             stopwatch.stop();
+            stopwatch.reset();
           }
         }
 
