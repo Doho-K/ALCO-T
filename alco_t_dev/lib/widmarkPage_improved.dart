@@ -2,14 +2,10 @@ import 'package:alco_t_dev/DataCollector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
-/*
-수정 예정사항
-1. 유저 인풋 페이지 수정 후, 성별 정보 적용 가능하게 변경 예정(현재는 setMaxBal에 true(남자)로 넘겨주게 해놨음)
-2. 음주량(alcohol) 로컬 기록 및 파이어베이스에 데이터 전송
-3. 페이지 입장시 / 데이터 입력시 시간 확인해서 알코올 분해량 적용
-4. 
-*/
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:alco_t_dev/user_model.dart';
 
 class WidmarkPage_improved extends StatefulWidget{
   const WidmarkPage_improved({Key? key}) : super(key: key);
@@ -24,13 +20,15 @@ class _WidmarkPageState extends State<WidmarkPage_improved>{
   var _selectedDrink = "직접 입력";
   var _selectedVolumn = "직접 입력";
 
-  var beta = 0.015;   // 시간당 분해량
+  var beta = 0.015;   // 시간당 분해량. 평균 0.015%. 0.008%~0.03%
   var absorptionFactor = 0.7;  // 알코올 흡수율
 
   var alcohol = 0.0;  // 누적 섭취량
   DateTime? lastIntake; // 마지막 섭취 시간
   var alcoholysisTime = 0.0;  // 마지막 섭취로부터 분해에 필요한 시간
   var maxBAC = 0.0; // 최대 BAC
+
+  DrinkDataCollector _collector = DrinkDataCollector();
 
   void addAlcohol(double degree, double volumn){
     lastIntake = DateTime.now();
@@ -43,8 +41,20 @@ class _WidmarkPageState extends State<WidmarkPage_improved>{
   }
 
   double getCurrentBAC(){
-    double passed = DateTime.now().difference(lastIntake!).inMinutes / 1000;
-    return maxBAC - (beta * passed);
+    int passed = DateTime.now().difference(lastIntake!).inMinutes;
+    if (passed >= 90) {
+      return maxBAC - (beta * (passed/60));
+    }
+    return maxBAC;
+  }
+
+  void updateAlcohol(bool isMan, double weight){
+    // 알코올이 추가될 때, 알코올이 부분적으로 분해됐을 경우 총 알코올량 갱신
+    double sexWeight = (isMan)?0.86:0.64;
+    int passed = DateTime.now().difference(lastIntake!).inMinutes;
+    if (passed >= 90){
+      alcohol -= beta * (passed/60) * (10 * weight * sexWeight) / absorptionFactor;
+    }
   }
 
   void setAlcoholysisTime(){
@@ -84,11 +94,13 @@ class _WidmarkPageState extends State<WidmarkPage_improved>{
       alcoholysisTime = 0;
       maxBAC = 0;
     }
-
   }
 
   @override
   Widget build(BuildContext context){
+    UserModel userModel = Provider.of<UserModel>(context);
+    checkBAC();
+
     return Scaffold(
       body: SingleChildScrollView( // SingleChildScrollView 추가
         child: Container(
@@ -242,9 +254,12 @@ class _WidmarkPageState extends State<WidmarkPage_improved>{
                         setState(() {
                           var deg = double.parse(drink) / 100;
                           var vol = double.parse(volumn);
+                          updateAlcohol(userModel.sex!, userModel.weight!);
                           addAlcohol(deg, vol);
-                          setMaxBAC(true, 80);
+                          setMaxBAC(userModel.sex!, userModel.weight!);
                           setAlcoholysisTime();
+                          _collector.setData(DrinkDataModel(user: userModel.user!, alcohol: alcohol));
+                          _collector.saveData();
                         });
                       }
                     },
@@ -267,5 +282,43 @@ class _WidmarkPageState extends State<WidmarkPage_improved>{
         ),
       ),
     );
+  }
+}
+
+class DrinkDataCollector extends GetxController{
+
+  DrinkDataModel? _data;
+
+  void setData(DrinkDataModel dataInstance){
+    _data = dataInstance;
+  }
+
+  void saveData() async {
+    try{
+      await FirebaseFirestore.instance.collection('drink').add(_data!.toJson());
+    } catch(e){
+      print(e);
+    }
+  }
+}
+
+class DrinkDataModel{
+  User user;
+  double alcohol;
+  Timestamp? submitTime;
+
+  DrinkDataModel({required this.user, required this.alcohol});
+
+  DrinkDataModel.fromJson(Map<String, dynamic> json)
+      : user = json['user'],
+        alcohol = json['alcohol'],
+        submitTime = json['submitTime'];
+
+  Map<String,dynamic> toJson(){
+    return {
+      'user': user,
+      'alcohol': alcohol,
+      'submitTime': submitTime ?? FieldValue.serverTimestamp(),
+    };
   }
 }

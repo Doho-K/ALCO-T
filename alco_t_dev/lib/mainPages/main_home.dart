@@ -3,6 +3,7 @@ import 'package:alco_t_dev/GyroTask.dart';
 import 'package:alco_t_dev/PatternSwipingPage.dart';
 import 'package:alco_t_dev/SelectionPage.dart';
 import 'package:alco_t_dev/widmarkPage.dart';
+import 'package:alco_t_dev/widmarkPage_improved.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -26,7 +27,7 @@ class _main_homeState extends State<main_home> {
             children: <Widget>[
               SizedBox(height: 20.0),
               ElevatedButton(onPressed: () {
-                Get.to(WidmarkPage());
+                Get.to(WidmarkPage_improved());
               },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(255, 212, 212, 1),
