@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/Alco_T/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/Alco_T/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/Alco_T/build" />
+      <excludeFolder url="file://$MODULE_DIR$/alco_t_dev/build" />
+      <excludeFolder url="file://$MODULE_DIR$/alco_t_dev/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/alco_t_dev/.dart_tool" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
