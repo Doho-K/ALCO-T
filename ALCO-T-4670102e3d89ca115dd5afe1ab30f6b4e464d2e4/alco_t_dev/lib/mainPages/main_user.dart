@@ -15,6 +15,13 @@ class _main_userState extends State<main_user> {
   TextEditingController _heightController = TextEditingController();
   final myController = Get.put(DataCollector());
   @override
+  void initState() {
+    // 초기 값을 설정합니다.
+    _nameController.text = myController.userName.value;
+    _weightController.text = myController.userWeight.value.toString();
+    _heightController.text = myController.userHeight.value.toString();
+  }
+  @override
   Widget build(BuildContext context) {
     return Container(
       child: Padding(padding: EdgeInsets.all(20.0),

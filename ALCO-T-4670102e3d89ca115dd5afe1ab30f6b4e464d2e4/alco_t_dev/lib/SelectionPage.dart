@@ -1,3 +1,4 @@
+import 'package:alco_t_dev/GyroTask.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -39,7 +40,7 @@ class _SelectionState extends State<SelectionPage> {
   int targetIndex = -1; // 정답 도형 인덱스
   String? targetString;
   Color? targetColor;
-  
+
   bool result = false;
   bool showProblemWidget = false;
 
@@ -67,36 +68,36 @@ class _SelectionState extends State<SelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("도형 선택 문제")),
-      backgroundColor: Colors.white70,
-      body: (showProblemWidget)? ((selected!=null)? resultWidget() : problemWidget()) : initWidget()
+        appBar: AppBar(title: Text("도형 선택 문제")),
+        backgroundColor: Colors.white70,
+        body: (showProblemWidget)? ((selected!=null)? resultWidget() : problemWidget()) : initWidget()
     );
   }
 
   Widget initWidget(){
     return LayoutBuilder(
-      builder: (context, constraints) {
-        screenSize = Size(constraints.maxWidth, constraints.maxWidth * 1.8);
-        return Center(
-          child: GestureDetector(
-            onPanEnd: (DragEndDetails event) {
-              setState(() {
-                showProblemWidget = true;
-                randomFigures(num);
-                start = DateTime.now();
-              });
-            },
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("터치하면 시작합니다", style: TextStyle(fontSize: 35, color: Colors.black,), textAlign: TextAlign.center,),
-                Text("화면 상단의 텍스트가 지시하는 도형을 터치하세요", style: TextStyle(fontSize: 15, color: Colors.black), textAlign: TextAlign.center,),
-                Text("텍스트의 색은 정답과 상관이 없습니다", style: TextStyle(fontSize: 15, color: Colors.black), textAlign: TextAlign.center,),
-              ],
-            )
-          )
-        );
-      }
+        builder: (context, constraints) {
+          screenSize = Size(constraints.maxWidth, constraints.maxWidth * 1.8);
+          return Center(
+              child: GestureDetector(
+                  onPanEnd: (DragEndDetails event) {
+                    setState(() {
+                      showProblemWidget = true;
+                      randomFigures(num);
+                      start = DateTime.now();
+                    });
+                  },
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("터치하면 시작합니다", style: TextStyle(fontSize: 35, color: Colors.black,), textAlign: TextAlign.center,),
+                      Text("화면 상단의 텍스트가 지시하는 도형을 터치하세요", style: TextStyle(fontSize: 15, color: Colors.black), textAlign: TextAlign.center,),
+                      Text("텍스트의 색은 정답과 상관이 없습니다", style: TextStyle(fontSize: 15, color: Colors.black), textAlign: TextAlign.center,),
+                    ],
+                  )
+              )
+          );
+        }
     );
   }
 
@@ -105,23 +106,23 @@ class _SelectionState extends State<SelectionPage> {
     _painter = _SelectionPainter(offset: offset, onSelect: _onSelect, size: screenSize, palette: palette, figures: figures);
     return Column(children: [
       Container(
-        alignment: Alignment.center,
-        color: Colors.black,
-        padding: EdgeInsets.only(bottom: 5, top: 5),
-        child: Text(
-          targetString!,
-          style: TextStyle(color: targetColor, fontSize: 30),
-        )
+          alignment: Alignment.center,
+          color: Colors.black,
+          padding: EdgeInsets.only(bottom: 5, top: 5),
+          child: Text(
+            targetString!,
+            style: TextStyle(color: targetColor, fontSize: 30),
+          )
       ),
       Center(
-        child: GestureDetector(
-          onPanStart: _onPanStart,
-          onPanEnd: _onPanEnd,
-          child: CustomPaint(
-            painter: _painter,
-            size: screenSize,
+          child: GestureDetector(
+              onPanStart: _onPanStart,
+              onPanEnd: _onPanEnd,
+              child: CustomPaint(
+                painter: _painter,
+                size: screenSize,
+              )
           )
-        )
       )
     ],);
   }
@@ -139,21 +140,24 @@ class _SelectionState extends State<SelectionPage> {
     }
 
     return Container(
-      alignment: Alignment.center,
-      child: Column(
-        children: [
-          Text(
-            resultStr,
-            style: TextStyle(color: color, fontSize: 100),
-            textAlign: TextAlign.center,
-          ),
-          Text(
-            "$responseTime ms",
-            style: TextStyle(color: color, fontSize: 50),
-            textAlign: TextAlign.center,
-          )
-        ]
-      )
+        alignment: Alignment.center,
+        child: Column(
+            children: [
+              Text(
+                resultStr,
+                style: TextStyle(color: color, fontSize: 100),
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                "$responseTime ms",
+                style: TextStyle(color: color, fontSize: 50),
+                textAlign: TextAlign.center,
+              ),
+              ElevatedButton(onPressed: () {
+                Get.to(GyroTask());
+              }, child: Text("다음 테스크로"))
+            ]
+        )
     );
   }
 
@@ -183,7 +187,7 @@ class _SelectionState extends State<SelectionPage> {
 
       count++;
       setState(() {});
-      Future.delayed(Duration(seconds: 1), () {
+      Future.delayed(Duration(seconds: 10), () {
         if(count <= 5){
           setState(() {
             randomFigures(num);
@@ -212,32 +216,32 @@ class _SelectionState extends State<SelectionPage> {
     double padding = 10;
     double d = screenSize.width/4 + padding;
     switch(num){
-    case 3:
-      offsetList.add(Offset(mid_x,mid_y-d));
-      offsetList.add(Offset(mid_x,mid_y));
-      offsetList.add(Offset(mid_x,mid_y+d));
-      break;
-    case 4:
-      offsetList.add(Offset(mid_x,mid_y-d));
-      offsetList.add(Offset(mid_x+d,mid_y));
-      offsetList.add(Offset(mid_x,mid_y+d));
-      offsetList.add(Offset(mid_x-d,mid_y));
-      break;
-    case 5:
-      offsetList.add(Offset(mid_x-d,mid_y-d));
-      offsetList.add(Offset(mid_x+d,mid_y-d));
-      offsetList.add(Offset(mid_x-d,mid_y));
-      offsetList.add(Offset(mid_x+d,mid_y));
-      offsetList.add(Offset(mid_x,mid_y+d));
-      break;
-    case 6:
-      offsetList.add(Offset(mid_x-d,mid_y-d));
-      offsetList.add(Offset(mid_x+d,mid_y-d));
-      offsetList.add(Offset(mid_x-d,mid_y));
-      offsetList.add(Offset(mid_x+d,mid_y));
-      offsetList.add(Offset(mid_x-d,mid_y+d));
-      offsetList.add(Offset(mid_x+d,mid_y+d));
-      break;
+      case 3:
+        offsetList.add(Offset(mid_x,mid_y-d));
+        offsetList.add(Offset(mid_x,mid_y));
+        offsetList.add(Offset(mid_x,mid_y+d));
+        break;
+      case 4:
+        offsetList.add(Offset(mid_x,mid_y-d));
+        offsetList.add(Offset(mid_x+d,mid_y));
+        offsetList.add(Offset(mid_x,mid_y+d));
+        offsetList.add(Offset(mid_x-d,mid_y));
+        break;
+      case 5:
+        offsetList.add(Offset(mid_x-d,mid_y-d));
+        offsetList.add(Offset(mid_x+d,mid_y-d));
+        offsetList.add(Offset(mid_x-d,mid_y));
+        offsetList.add(Offset(mid_x+d,mid_y));
+        offsetList.add(Offset(mid_x,mid_y+d));
+        break;
+      case 6:
+        offsetList.add(Offset(mid_x-d,mid_y-d));
+        offsetList.add(Offset(mid_x+d,mid_y-d));
+        offsetList.add(Offset(mid_x-d,mid_y));
+        offsetList.add(Offset(mid_x+d,mid_y));
+        offsetList.add(Offset(mid_x-d,mid_y+d));
+        offsetList.add(Offset(mid_x+d,mid_y+d));
+        break;
     }
     offsetList.shuffle();
     return offsetList;
@@ -281,34 +285,34 @@ class _SelectionState extends State<SelectionPage> {
     }
     return "";
   }
-  
+
   String getColorKor(Color color){
     String colorString = getColorEng(color);
     switch(colorString){
-    case "red":
-      colorString = "빨간색";
-      break;
-    case "orange":
-      colorString = "주황색";
-      break;
-    case "yellow":
-      colorString = "노란색";
-      break;
-    case "green":
-      colorString = "초록색";
-      break;
-    case "blue":
-      colorString = "파란색";
-      break;
-    case "purple":
-      colorString = "보라색";
-      break;
-    case "brown":
-      colorString = "갈색";
-      break;
-    case "gray":
-      colorString = "회색";
-      break;
+      case "red":
+        colorString = "빨간색";
+        break;
+      case "orange":
+        colorString = "주황색";
+        break;
+      case "yellow":
+        colorString = "노란색";
+        break;
+      case "green":
+        colorString = "초록색";
+        break;
+      case "blue":
+        colorString = "파란색";
+        break;
+      case "purple":
+        colorString = "보라색";
+        break;
+      case "brown":
+        colorString = "갈색";
+        break;
+      case "gray":
+        colorString = "회색";
+        break;
     }
     return colorString;
   }
@@ -317,7 +321,7 @@ class _SelectionState extends State<SelectionPage> {
     Figure targetFigure = figures[targetIndex];
     bool dup_shape = false;
     bool dup_color = false;
-    
+
     for(var figure in figures){
       if(figure == targetFigure){
         continue;
@@ -534,7 +538,7 @@ class selectionDataModel{
 
   double _touched_x = 0, _touched_y = 0;
   int _touch_count = 0;
-  
+
   int _responseTime = 0;
   int _touch_duration = 0;
 

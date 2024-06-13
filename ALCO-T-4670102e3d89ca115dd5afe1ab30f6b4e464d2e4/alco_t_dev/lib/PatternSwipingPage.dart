@@ -1,3 +1,4 @@
+import 'package:alco_t_dev/mainPages/mainPage.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -58,7 +59,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
 
   final int INTERVAL = 5;  // 기록 간격
   int timeBefore = -100;       // 이전 기록 시간
-  
+
   PatternDataCollector? collector;
 
   @override
@@ -80,57 +81,57 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
     var _width = MediaQuery.of(context).size.width;
     var _sizePainter = Size.square(_width * 2/3);
     return Scaffold(
-        // appBar: AppBar(title: Text(widget.title)),
-        backgroundColor: Colors.white70,
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            Expanded(
+      // appBar: AppBar(title: Text(widget.title)),
+      backgroundColor: Colors.white70,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          Expanded(
               flex: 3,
               child: Container(
-                alignment: Alignment.bottomCenter,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      child: const Text("아래 패턴을 따라 그리세요", style: TextStyle(fontSize: 16)),
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(bottom: _width/16),
-                      child: const Text("(빨간점부터 시작)", style: TextStyle(fontSize: 16)),
-                    ),
-                  ]
-                )
+                  alignment: Alignment.bottomCenter,
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          child: const Text("아래 패턴을 따라 그리세요", style: TextStyle(fontSize: 16)),
+                        ),
+                        Container(
+                          margin: EdgeInsets.only(bottom: _width/16),
+                          child: const Text("(빨간점부터 시작)", style: TextStyle(fontSize: 16)),
+                        ),
+                      ]
+                  )
               )
-            ),
-            Expanded(
-              flex: 4,
-              child: Container(
-                alignment: Alignment.center,
-                margin: EdgeInsets.only(left: _sizePainter.width/4, right: _sizePainter.width/4),
-                decoration: BoxDecoration(
-                    color: const Color.fromRGBO(64, 64, 64, 16),
-                    borderRadius: BorderRadius.circular(12)),
-                child: GestureDetector(
-                  onPanStart: _onPanStart,
-                  onPanUpdate: _onPanUpdate,
-                  onPanEnd: _onPanEnd,
-                  child: CustomPaint(
-                    painter: _LockScreenPainter(
-                        codes: codes, offset: offset, onSelect: _onSelect, pattern: pattern, pos: pos, grids: grids),
-                    size: _sizePainter,
-                  ),
+          ),
+          Expanded(
+            flex: 4,
+            child: Container(
+              alignment: Alignment.center,
+              margin: EdgeInsets.only(left: _sizePainter.width/4, right: _sizePainter.width/4),
+              decoration: BoxDecoration(
+                  color: const Color.fromRGBO(64, 64, 64, 16),
+                  borderRadius: BorderRadius.circular(12)),
+              child: GestureDetector(
+                onPanStart: _onPanStart,
+                onPanUpdate: _onPanUpdate,
+                onPanEnd: _onPanEnd,
+                child: CustomPaint(
+                  painter: _LockScreenPainter(
+                      codes: codes, offset: offset, onSelect: _onSelect, pattern: pattern, pos: pos, grids: grids),
+                  size: _sizePainter,
                 ),
               ),
             ),
-            Expanded(
+          ),
+          Expanded(
               flex: 3,
               child: Container()
-            ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
   }
 
   void _onPanStart(DragStartDetails event) {
@@ -155,7 +156,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
         // 가속도계 기록
         if(acc_available){
           accelerometerEventStream(samplingPeriod: sensorInterval).listen(
-            (AccelerometerEvent event) {
+                (AccelerometerEvent event) {
               if(acc.isEmpty){
                 acc.add([event.x,event.y,event.z]);
                 acc_timestamp.add(interval);
@@ -177,7 +178,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
         // 자이로 기록
         if(gyro_available){
           gyroscopeEventStream(samplingPeriod: sensorInterval).listen(
-            (GyroscopeEvent event) {
+                (GyroscopeEvent event) {
               if(gyro.isEmpty){
                 gyro.add([event.x,event.y,event.z]);
                 gyro_timestamp.add(interval);
@@ -229,7 +230,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
           trial = 0;
         }
         else{
-          Navigator.pop(context);
+          Get.to(mainPage());
         }
       }
     }
@@ -257,7 +258,7 @@ class _PatternSwipingState extends State<PatternSwipingPage> {
     gyro = [];
     timeBefore = -INTERVAL*2;
   });
-  
+
   setPattern(){
     if(inPool[index]){
       pattern = patternPool[random.nextInt(patternPool.length)];
@@ -415,7 +416,7 @@ class _LockScreenPainter extends CustomPainter {
         _drawCircle(canvas, _offset, _radius, _palette["red"]!, true);
       }
       else{
-          _drawCircle(canvas, _offset, _radius, _palette["white"]!, true);
+        _drawCircle(canvas, _offset, _radius, _palette["white"]!, true);
       }
 
       /*
@@ -501,7 +502,7 @@ class PatternDataCollector extends GetxController{
 class patternDataModel{
   String userID = ""; // 유저 정보와 연결하기 위함
   int sessionID = 0;  // 한 번의 테스트당 복수 개의 패턴을 그리므로, 각 테스트를 하나의 세션으로 구분
-  
+
   int _patternCount = 0; // 몇 번째 패턴 시도중인지
   int _submitCount = 0;  // 해당 패턴에서 몇 번째 제출인지
 
@@ -552,8 +553,8 @@ class patternDataModel{
   patternDataModel.fromJson(Map<String, dynamic> json)
       : userID = json['userID'],
         sessionID = json['sessionID'],
-        
-        _patternCount = json['patternCount'], 
+
+        _patternCount = json['patternCount'],
         _submitCount = json['submitCount'],
         _submitTime = json['submitTime'],
         _pattern = json['pattern'],

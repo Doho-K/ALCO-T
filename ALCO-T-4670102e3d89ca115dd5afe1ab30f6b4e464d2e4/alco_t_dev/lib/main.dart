@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
           GetPage(name: '/main', page: () => mainPage()),
           GetPage(name: '/info', page: () => infoPage(), transition: Transition.zoom),
         ],
-        home: mainPage(),//InputScreen(),
+        home: landingPage(),//InputScreen(),
       ),
     );
   }

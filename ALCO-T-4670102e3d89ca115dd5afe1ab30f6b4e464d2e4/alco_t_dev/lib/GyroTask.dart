@@ -1,4 +1,7 @@
 import 'package:alco_t_dev/DataCollector.dart';
+import 'package:alco_t_dev/SelectionPage.dart';
+import 'package:alco_t_dev/driverCall.dart';
+import 'package:alco_t_dev/mainPages/mainPage.dart';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:async';
@@ -173,7 +176,36 @@ class _MovingBallState extends State<MovingBall> with TickerProviderStateMixin {
   int missionX = 0;
   int missionY = 0;
   Stopwatch stopwatch = Stopwatch();
-
+  List<double> gyroX = [];
+  List<double> gyroY = [];
+  double gyroXMax = 0;
+  double gyroYMax = 0;
+  void showResultDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('정밀 검사 결과', style: TextStyle(color: Colors.red, fontSize: 24)),
+          content: Text(
+            '당신의 추정 혈중 알코올 농도는 0.05%입니다.\n\n'
+                '현재 법적 음주운전 한계치를 넘었으므로 대리운전을 매칭해 드리겠습니다.',
+            style: TextStyle(fontSize: 18),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              child: Text('근방 대리운전 매칭'),
+              onPressed: () {
+                // 네비게이션으로 전환 코드 추가
+                Navigator.of(context).pop(); // 팝업 닫기
+                Get.to(DriverCall());
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
   @override
   void initState() {
     super.initState();
@@ -223,10 +255,30 @@ class _MovingBallState extends State<MovingBall> with TickerProviderStateMixin {
               _y = -400;
             }
           }
+
+
+          gyroX.add(myController.gyroX.value);
+          gyroY.add(myController.gyroY.value);
+
           if(distanceBetweenPoints(_x, _y, missionX.toDouble(), missionY.toDouble())<3){
             myController.taskStart.value = false;
             myController.gyroTime.value = stopwatch.elapsedMilliseconds.toDouble();
+            for(int i = 0; i<gyroX.length; i++){
+              if(gyroX[i].abs()>gyroXMax){
+                gyroXMax = gyroX[i].abs();
+              }
+              if(gyroY[i].abs()>gyroYMax){
+                gyroYMax = gyroY[i].abs();
+              }
+            }
+            myController.saveGyroTask(gyroX.first, gyroY.first, gyroXMax, gyroYMax, myController.gyroTime.value);
+            gyroX.clear();
+            gyroY.clear();
+            gyroYMax=0;
+            gyroXMax=0;
             stopwatch.stop();
+            stopwatch.reset();
+            showResultDialog();
           }
         }
 
@@ -247,7 +299,7 @@ class _MovingBallState extends State<MovingBall> with TickerProviderStateMixin {
         children: [
           /*Text(myController.initY.value.toString()),
           Text(myController.gyroY.value.toString()),*/
-          Text("${myController.gyroTime.value.toString()}:millisec!"),
+          //Text("${myController.gyroTime.value.toString()}:millisec!"),
           CustomPaint(
             painter: BallPainter(_x, _y),
           ),

@@ -52,7 +52,7 @@ class _mainPageState extends State<mainPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map),
-            label: '지도',
+            label: '네비게이션',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
